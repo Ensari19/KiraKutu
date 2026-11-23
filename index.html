@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KiraKutu Prototipi</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12332F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KiraKutu">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400..700&display=swap">
+<style>
+/* VOICE  everyday product: a shipped neighbourhood rental app, friendly but trustworthy
+   IDEA   the KiraKutu locker itself: compartments, codes and doors drive every screen
+   PICTURE the phone app is the picture; on wide screens it stands in a deep-teal locker-coloured room with a demo guide
+   COLOUR deep teal #12332F ground, cream #F7F3EA app surface, orange #F2994A for action, mint for available
+   TYPE   Rubik for everything, four sizes
+   LAYOUT laptop: guide panel left, phone frame right; phone: the app fills the screen */
+:root{color-scheme:light;--dk:#12332F;--dk2:#1C4540;--cr:#F7F3EA;--pp:#FFFDF8;--mt:#E4EEE9;--mt2:#CFE3D8;--or:#F2994A;--or2:#FCE6D3;--ort:#A84A12;--bd:#43524E;--mu:#6B7A76;--ln:#E2DACB;--gr:#2F8F5B;--gr2:#DDF1E5;--rd:#B3261E;--rd2:#FBE3E0}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--dk);color:var(--dk);font:16px/1.45 Rubik,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:var(--dk)}
+h1,h2,h3,p{margin:0}
+.stage{height:100%;display:grid;grid-template-columns:minmax(0,420px) auto;justify-content:center;align-items:center;gap:56px;padding:24px max(24px,env(safe-area-inset-right))}
+.guide{color:var(--cr);max-width:420px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:none}
+.guide .brand{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;margin-bottom:20px}
+.guide h1{font-size:40px;line-height:1.05;letter-spacing:-.02em;text-wrap:balance;margin-bottom:12px}
+.guide p{color:#C9DDD8;font-size:16px;margin-bottom:24px}
+.guide h2{font-size:16px;font-weight:600;margin:0 0 10px;color:#F7F3EA}
+.scn{display:grid;gap:8px;margin-bottom:24px}
+.scn button{display:flex;align-items:center;gap:12px;text-align:left;background:var(--dk2);border:1px solid #2E5F58;border-radius:14px;padding:12px 14px;min-height:56px;color:var(--cr);transition:background .15s}
+.scn button:hover{background:#24574F}
+.scn button:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.scn b{display:block;font-weight:600}
+.scn small{color:#A9C4BE;font-size:13px}
+.scn .n{flex:none;width:30px;height:30px;border-radius:15px;background:var(--or);color:var(--dk);display:grid;place-items:center;font-weight:700}
+.qr{display:flex;gap:16px;align-items:center;background:var(--dk2);border-radius:16px;padding:14px;border:1px solid #2E5F58}
+.qr .qbox{width:112px;height:112px;background:#fff;border-radius:10px;padding:6px;flex:none;display:grid;place-items:center;color:var(--mu);font-size:13px;text-align:center}
+.qr p{margin:0;font-size:14px}
+.note{font-size:13px;color:#A9C4BE;margin-top:16px}
+.phone{width:390px;height:min(844px,calc(100vh - 48px));border-radius:52px;background:#0B1F1C;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,.35),inset 0 0 0 2px #2E5F58;position:relative}
+.app{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:var(--cr);display:flex;flex-direction:column;isolation:isolate}
+.sbar{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 32px;font-size:15px;font-weight:600;position:relative;z-index:5}
+.sbar .isl{position:absolute;left:50%;top:9px;width:110px;height:30px;background:#0B1F1C;border-radius:16px;transform:translateX(-50%)}
+.sbar .r{display:flex;gap:6px;align-items:center}
+.view{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.scr{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+.scr::-webkit-scrollbar{width:0}
+.in-fwd{animation:inF .28s cubic-bezier(.2,.8,.2,1)}
+.in-back{animation:inB .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes inF{from{transform:translateX(28px);opacity:.4}}
+@keyframes inB{from{transform:translateX(-28px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.in-fwd,.in-back{animation:none}*{transition:none!important}}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.i.s{width:18px;height:18px}
+.i.l{width:28px;height:28px}
+.it{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hd{position:sticky;top:0;z-index:4;background:var(--cr);display:flex;align-items:center;gap:8px;padding:6px 16px 10px;min-height:56px}
+.hd h1{font-size:19px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:44px;height:44px;border-radius:22px;display:grid;place-items:center;background:var(--pp);border:1px solid var(--ln);position:relative;flex:none}
+.ib:focus-visible,.btn:focus-visible,.chip:focus-visible,.card:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.ib .dot{position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:5px;background:var(--or);border:2px solid var(--pp)}
+.pad{padding:0 16px}
+.hello{padding:4px 16px 0}
+.hello small{color:var(--mu);font-size:14px;display:flex;align-items:center;gap:4px}
+.hello h2{font-size:26px;line-height:1.1;letter-spacing:-.01em;margin-top:2px}
+.srch{display:flex;align-items:center;gap:10px;background:var(--pp);border:1px solid var(--ln);border-radius:16px;padding:0 14px;height:52px;margin:14px 16px 0;color:var(--mu)}
+.srch input{flex:1;border:0;background:none;font-size:16px;outline:none;height:100%}
+.srch:focus-within{border-color:var(--dk)}
+.sec{display:flex;align-items:baseline;justify-content:space-between;padding:22px 16px 10px}
+.sec h3{font-size:18px;font-weight:600}
+.sec button{color:var(--ort);font-size:14px;font-weight:600;min-height:32px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 2px;scroll-snap-type:x proximity}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--ln);background:var(--pp);font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.chip.on{background:var(--dk);color:var(--cr);border-color:var(--dk)}
+.map{position:relative;margin:16px 16px 0;border-radius:22px;overflow:hidden;aspect-ratio:358/190;background:var(--mt);border:1px solid var(--mt2)}
+.map>svg{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px;min-height:44px;justify-content:flex-end}
+.pin .bub{background:var(--dk);color:var(--cr);font-size:12px;font-weight:600;padding:4px 8px;border-radius:10px;white-space:nowrap;display:flex;gap:4px;align-items:center}
+.pin .bub b{color:var(--or)}
+.pin .tip{width:10px;height:10px;background:var(--dk);transform:rotate(45deg);margin-top:-7px}
+.pin.near .bub{background:var(--or);color:var(--dk)}
+.pin.near .bub b{color:var(--dk)}
+.pin.near .tip{background:var(--or)}
+.me{position:absolute;width:18px;height:18px;border-radius:9px;background:#2B6CB0;border:3px solid #fff;transform:translate(-50%,-50%);box-shadow:0 0 0 8px rgba(43,108,176,.18)}
+.maplab{position:absolute;left:10px;bottom:10px;background:rgba(255,253,248,.95);border-radius:12px;padding:6px 10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.hs{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scroll-snap-type:x mandatory}
+.hs::-webkit-scrollbar{display:none}
+.lk{flex:none;width:220px;scroll-snap-align:start;background:var(--pp);border:1px solid var(--ln);border-radius:20px;padding:14px;text-align:left;display:flex;gap:12px;align-items:center}
+.lk .ico{width:48px;height:48px;border-radius:14px;background:var(--dk);color:var(--or);display:grid;place-items:center;flex:none}
+.lk b{display:block;font-size:15px;font-weight:600;line-height:1.2}
+.lk small{color:var(--mu);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 16px}
+.card{background:var(--pp);border:1px solid var(--ln);border-radius:20px;overflow:hidden;text-align:left;display:flex;flex-direction:column}
+.card .tile{aspect-ratio:4/3;display:grid;place-items:center;position:relative}
+.card .tile svg{width:46%;height:auto}
+.card .bd{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.card .nm{font-size:15px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px}
+.card .pr{font-size:15px;font-weight:700;white-space:nowrap}
+.card .pr span{font-weight:400;color:var(--mu);font-size:13px}
+.card .mt{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden}
+.badge{position:absolute;left:8px;top:8px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:9px;background:var(--pp)}
+.badge.busy{background:var(--dk);color:var(--cr)}
+.badge.new{background:var(--or);color:var(--dk)}
+.star{color:#D98A1E;display:inline-flex;align-items:center;gap:2px;font-weight:600;color:var(--dk)}
+.star svg{fill:#F2994A;stroke:#F2994A;width:14px;height:14px}
+.empty{text-align:center;padding:36px 24px;color:var(--mu)}
+.empty .ei{width:72px;height:72px;border-radius:36px;background:var(--mt);display:grid;place-items:center;margin:0 auto 12px;color:var(--dk)}
+.empty b{display:block;color:var(--dk);font-size:17px;margin-bottom:4px}
+.active{margin:16px 16px 0;background:var(--dk);color:var(--cr);border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;text-align:left;width:calc(100% - 32px)}
+.active .ti{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;flex:none}
+.active .ti svg{width:30px;height:30px}
+.active b{display:block;font-size:15px}
+.active small{color:#C9DDD8;font-size:13px}
+.active .go{margin-left:auto;color:var(--or)}
+.tabs{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:var(--pp);border-top:1px solid var(--ln);padding:6px 4px calc(10px + env(safe-area-inset-bottom));position:relative;z-index:6}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--mu);min-height:50px;justify-content:center;position:relative}
+.tabs button.on{color:var(--dk)}
+.tabs button.on .i{stroke-width:2.2}
+.tabs .plus{width:52px;height:52px;border-radius:26px;background:var(--or);color:var(--dk);display:grid;place-items:center;margin-top:-22px;box-shadow:0 6px 14px rgba(18,51,47,.25)}
+.tabs .cnt{position:absolute;top:4px;left:calc(50% + 6px);background:var(--or);color:var(--dk);font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+.hero{position:relative;height:280px;display:grid;place-items:center}
+.hero svg.it{width:150px;height:150px}
+.hero .ib{position:absolute;top:8px}
+.hero .ib.l{left:16px}
+.hero .ib.r{right:16px}
+.sheetish{background:var(--cr);border-radius:28px 28px 0 0;margin-top:-28px;position:relative;padding:22px 16px 0}
+.tt{font-size:24px;line-height:1.15;letter-spacing:-.01em;font-weight:600}
+.sub{color:var(--mu);font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.prices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.prices div{background:var(--pp);border:1px solid var(--ln);border-radius:16px;padding:10px 12px}
+.prices small{display:block;color:var(--mu);font-size:12px}
+.prices b{font-size:18px;white-space:nowrap}
+.box{background:var(--pp);border:1px solid var(--ln);border-radius:20px;padding:14px;margin-top:12px}
+.row{display:flex;align-items:center;gap:12px}
+.row .grow{flex:1}
+.row small{color:var(--mu);font-size:13px;display:block}
+.row b{font-size:15px;font-weight:600;display:block}
+.av{width:44px;height:44px;border-radius:22px;display:grid;place-items:center;font-weight:700;font-size:16px;flex:none}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;background:var(--mt);color:var(--dk);white-space:nowrap}
+.tag.or{background:var(--or2);color:var(--ort)}
+.tag.gr{background:var(--gr2);color:var(--gr)}
+.h4{font-size:17px;font-weight:600;margin:22px 0 8px}
+.txt{color:var(--bd);font-size:15px}
+ul.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+ul.rules li{display:flex;gap:10px;font-size:15px;color:var(--bd)}
+ul.rules li .i{color:var(--gr)}
+.rev{padding:12px 0;border-top:1px solid var(--ln)}
+.rev:first-child{border-top:0}
+.rev .row b{font-size:14px}
+.rev p{font-size:14px;color:var(--bd);margin-top:6px}
+.cta{flex:none;background:var(--pp);border-top:1px solid var(--ln);padding:12px 16px calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;z-index:6}
+.cta .p b{font-size:20px;white-space:nowrap}
+.cta .p small{display:block;color:var(--mu);font-size:12px}
+.btn{height:52px;border-radius:16px;background:var(--or);color:var(--dk);font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 18px;flex:1;transition:transform .1s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn.dk{background:var(--dk);color:var(--cr)}
+.btn.gh{background:var(--pp);border:1px solid var(--ln);color:var(--dk)}
+.btn[disabled]{background:var(--ln);color:var(--mu);cursor:not-allowed}
+.btn.full{width:100%;flex:none}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--mt);border-radius:14px;padding:4px;gap:4px}
+.seg button{height:42px;border-radius:11px;font-weight:600;font-size:15px;color:var(--bd)}
+.seg button.on{background:var(--pp);color:var(--dk);box-shadow:0 1px 3px rgba(18,51,47,.12)}
+.step{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stp{display:flex;align-items:center;gap:4px;background:var(--mt);border-radius:14px;padding:4px}
+.stp button{width:44px;height:44px;border-radius:11px;background:var(--pp);display:grid;place-items:center}
+.stp button[disabled]{opacity:.4}
+.stp output{min-width:64px;text-align:center;font-weight:600;font-size:16px}
+.tog{width:52px;height:32px;border-radius:16px;background:var(--ln);position:relative;flex:none;transition:background .2s}
+.tog::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:12px;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on{background:var(--gr)}
+.tog.on::after{transform:translateX(20px)}
+.sum{display:grid;gap:8px;font-size:15px}
+.sum div{display:flex;justify-content:space-between;gap:12px}
+.sum div span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.sum .tot{border-top:1px dashed var(--ln);padding-top:10px;font-weight:700;font-size:17px}
+.chk{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--bd);text-align:left;margin-top:14px;min-height:44px}
+.chk .bx{width:24px;height:24px;border-radius:7px;border:2px solid var(--mu);flex:none;display:grid;place-items:center;margin-top:1px}
+.chk.on .bx{background:var(--dk);border-color:var(--dk);color:var(--cr)}
+.chk .bx .i{width:16px;height:16px;stroke-width:3}
+.cardpay{display:flex;align-items:center;gap:12px}
+.cardpay .cc{width:52px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1C4540,#12332F);position:relative;flex:none}
+.cardpay .cc::after{content:"";position:absolute;left:8px;top:12px;width:12px;height:9px;border-radius:2px;background:#F2994A}
+.codebig{display:flex;justify-content:center;gap:10px;margin:8px 0 4px}
+.codebig span{width:56px;height:68px;border-radius:16px;background:var(--pp);border:1px solid var(--ln);display:grid;place-items:center;font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
+.qrw{background:#fff;border-radius:20px;padding:14px;width:200px;margin:12px auto 0;border:1px solid var(--ln)}
+.qrw svg{display:block;width:100%;height:auto}
+.timer{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ort);font-weight:600;font-size:15px;margin-top:10px;font-variant-numeric:tabular-nums}
+.how{display:grid;gap:10px;counter-reset:h}
+.how div{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--bd)}
+.how div::before{counter-increment:h;content:counter(h);width:28px;height:28px;border-radius:14px;background:var(--mt);color:var(--dk);font-weight:700;display:grid;place-items:center;flex:none;font-size:14px}
+.lkr{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:34px 64px 64px 84px;gap:6px;background:var(--dk);padding:10px;border-radius:22px;perspective:600px}
+.lkr .top{grid-column:1/-1;height:34px;border-radius:10px;background:var(--or);display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:13px;font-weight:700;color:var(--dk)}
+.cell{position:relative;border-radius:10px;background:#24574F;color:#C9DDD8;font-size:11px;font-weight:600;display:flex;align-items:flex-end;justify-content:flex-start;padding:5px 6px;overflow:hidden;transform-style:preserve-3d}
+.cell.c-free{background:#2E7A5E;color:#E7F6EE}
+.cell.c-busy{background:#1A3D39;color:#6F8F89}
+.cell.c-empty{background:transparent;border:1.5px dashed #3E6E67;color:#6F8F89}
+.cell.c-hl{background:var(--or);color:var(--dk);box-shadow:0 0 0 3px #FFD7B0}
+.cell .ci{position:absolute;right:5px;top:5px;opacity:.9}
+.cell .ci svg{width:20px;height:20px}
+.cell .door{position:absolute;inset:0;background:var(--or);border-radius:10px;transform-origin:left center;transition:transform .9s cubic-bezier(.3,.7,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.cell .door::after{content:"";width:4px;height:14px;border-radius:2px;background:var(--dk)}
+.cell.open .door{transform:rotateY(-78deg);background:#FFB878}
+.cell.open{background:#0B1F1C;box-shadow:inset 0 0 0 2px var(--or)}
+.cell.open .inside{opacity:1}
+.cell .inside{position:absolute;inset:0;display:grid;place-items:center;color:var(--or);opacity:0;transition:opacity .4s .5s}
+.cell .inside svg{width:60%;height:60%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:10px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.photo{border:2px dashed var(--ln);border-radius:20px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mu);background:var(--pp);position:relative;overflow:hidden;cursor:pointer;text-align:center;padding:16px}
+.photo input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo.done{border-style:solid;border-color:var(--gr)}
+.ok{position:absolute;right:10px;top:10px;background:var(--gr);color:#fff;border-radius:12px;padding:4px 10px;font-size:13px;font-weight:600;display:flex;gap:4px;align-items:center;z-index:2}
+.big{font-size:44px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.prog{height:10px;background:var(--mt);border-radius:5px;overflow:hidden;margin-top:12px}
+.prog i{display:block;height:100%;background:var(--or);border-radius:5px}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:4px 10px;border-radius:10px}
+.status.act{background:var(--gr2);color:var(--gr)}
+.status.res{background:var(--or2);color:var(--ort)}
+.status.done{background:var(--mt);color:var(--bd)}
+.status.late{background:var(--rd2);color:var(--rd)}
+.big.late{color:var(--rd)}
+.latebox{background:var(--rd2)!important;border-color:#F2B8B1!important}
+.latebox .i{color:var(--rd)}
+.late-t{color:var(--rd);font-weight:600}
+.prog.late i{background:var(--rd)!important}
+.lnkrow{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;margin-top:8px}
+.lnkrow button{color:var(--ort);font-weight:600;font-size:14px;min-height:44px;text-decoration:underline;text-underline-offset:3px}
+.succ .si.warn{background:var(--rd2);color:var(--rd)}
+.ticket{display:flex;gap:12px;align-items:flex-start;text-align:left}
+.ticket .tid{font-variant-numeric:tabular-nums;color:var(--mu);font-size:13px}
+.plan{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.rc{background:var(--pp);border:1px solid var(--ln);border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;text-align:left;width:100%;margin-bottom:10px}
+.rc .ti{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;flex:none}
+.rc .ti svg{width:32px;height:32px}
+.rc b{display:block;font-size:15px;font-weight:600}
+.rc small{display:block;color:var(--mu);font-size:13px;margin-top:2px}
+.stars{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.stars button{width:48px;height:48px;display:grid;place-items:center}
+.stars svg{width:38px;height:38px;fill:var(--ln);stroke:var(--ln)}
+.stars button.on svg{fill:var(--or);stroke:var(--or)}
+.qt{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+textarea,.inp{width:100%;border:1px solid var(--ln);background:var(--pp);border-radius:14px;padding:12px 14px;font-size:16px;outline:none;resize:none}
+textarea:focus,.inp:focus{border-color:var(--dk)}
+label.lb{display:block;font-size:14px;font-weight:600;margin:16px 0 6px}
+.wsteps{display:flex;gap:6px;padding:0 16px 4px}
+.wsteps i{flex:1;height:5px;border-radius:3px;background:var(--ln)}
+.wsteps i.on{background:var(--or)}
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cats button{background:var(--pp);border:1.5px solid var(--ln);border-radius:18px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;font-weight:600;min-height:96px}
+.cats button svg{width:36px;height:36px}
+.cats button.on{border-color:var(--dk);background:var(--mt)}
+.thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.thumbs img{width:64px;height:64px;border-radius:12px;object-fit:cover;border:1px solid var(--ln)}
+input[type=range]{width:100%;height:44px;-webkit-appearance:none;appearance:none;background:none}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(to right,var(--or) var(--p,40%),var(--ln) var(--p,40%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:14px;background:var(--dk);border:4px solid #fff;margin-top:-10px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--ln)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:4px;background:var(--or)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;background:var(--dk);border:4px solid #fff}
+.earn{background:var(--dk);color:var(--cr);border-radius:20px;padding:16px;margin-top:14px}
+.earn small{color:#C9DDD8;font-size:13px;display:block}
+.earn .big{color:var(--or);font-size:36px;margin:4px 0}
+.opt{display:grid;gap:8px}
+.opt button{display:flex;align-items:center;gap:12px;text-align:left;background:var(--pp);border:1.5px solid var(--ln);border-radius:16px;padding:12px 14px;min-height:60px}
+.opt button.on{border-color:var(--dk);background:var(--mt)}
+.opt button .rd{width:22px;height:22px;border-radius:11px;border:2px solid var(--mu);flex:none;display:grid;place-items:center}
+.opt button.on .rd{border-color:var(--dk)}
+.opt button.on .rd::after{content:"";width:10px;height:10px;border-radius:5px;background:var(--dk)}
+.opt b{display:block;font-size:15px;font-weight:600}
+.opt small{color:var(--mu);font-size:13px}
+.nt{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--ln);text-align:left;width:100%;align-items:flex-start}
+.nt.un{background:var(--pp)}
+.nt .ni{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;flex:none}
+.nt b{font-size:15px;font-weight:600;display:block}
+.nt p{font-size:14px;color:var(--bd);margin-top:2px}
+.nt small{font-size:12px;color:var(--mu);display:block;margin-top:4px}
+.prof{background:var(--dk);color:var(--cr);padding:8px 16px 22px;text-align:center}
+.prof .av{width:84px;height:84px;border-radius:42px;font-size:30px;margin:6px auto 10px;background:var(--or);color:var(--dk)}
+.prof h2{font-size:24px}
+.prof .vf{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.prof .vf span{background:var(--dk2);border:1px solid #2E5F58;border-radius:10px;padding:4px 10px;font-size:13px;display:flex;gap:4px;align-items:center;color:#C9DDD8}
+.prof .vf .i{color:#7FD3A4;width:16px;height:16px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:-1px 16px 0;transform:translateY(-12px)}
+.stats div{background:var(--pp);border:1px solid var(--ln);border-radius:16px;padding:10px;text-align:center}
+.stats b{display:block;font-size:20px;white-space:nowrap}
+.stats small{font-size:12px;color:var(--mu)}
+.menu{background:var(--pp);border:1px solid var(--ln);border-radius:20px;overflow:hidden;margin:0 16px}
+.menu button{display:flex;align-items:center;gap:12px;width:100%;padding:0 14px;min-height:56px;border-top:1px solid var(--ln);text-align:left;font-size:15px}
+.menu button:first-child{border-top:0}
+.menu button .grow{flex:1}
+.menu .mi{width:34px;height:34px;border-radius:10px;background:var(--mt);display:grid;place-items:center;flex:none}
+.bdg{display:flex;gap:10px;overflow-x:auto;padding:0 16px}
+.bdg div{flex:none;width:108px;background:var(--pp);border:1px solid var(--ln);border-radius:18px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600}
+.bdg .bi{width:48px;height:48px;border-radius:24px;margin:0 auto 6px;display:grid;place-items:center;background:var(--or2);color:var(--ort)}
+.bdg .lock{opacity:.45}
+.bdg .lock .bi{background:var(--mt);color:var(--mu)}
+.ov{position:absolute;inset:0;background:rgba(11,31,28,.45);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--cr);border-radius:28px 28px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom));max-height:86%;overflow-y:auto;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sheet.on{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--ln);margin:0 auto 12px}
+.sheet h3{font-size:20px;margin-bottom:6px}
+.faq details{background:var(--pp);border:1px solid var(--ln);border-radius:16px;margin-top:8px;padding:0 14px}
+.faq summary{min-height:52px;display:flex;align-items:center;font-weight:600;font-size:15px;cursor:pointer;list-style:none;gap:8px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";margin-left:auto;font-size:22px;color:var(--mu)}
+.faq details[open] summary::after{content:"–"}
+.faq p{font-size:14px;color:var(--bd);padding-bottom:14px}
+.toast{position:absolute;left:16px;right:16px;bottom:96px;z-index:30;background:var(--dk);color:var(--cr);border-radius:16px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:center;transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none}
+.toast.on{transform:none;opacity:1}
+.toast .i{color:var(--or)}
+.load{position:absolute;inset:0;z-index:25;background:rgba(247,243,234,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-weight:600}
+.load.on{display:flex}
+.spin{width:48px;height:48px;border-radius:24px;border:5px solid var(--mt2);border-top-color:var(--dk);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.succ{text-align:center;padding:12px 16px 0}
+.succ .si{width:88px;height:88px;border-radius:44px;background:var(--gr2);color:var(--gr);display:grid;place-items:center;margin:8px auto 14px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.succ .si .i{width:44px;height:44px;stroke-width:2.4}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+.succ h2{font-size:26px;line-height:1.15;margin-bottom:8px}
+.succ p{color:var(--bd);font-size:15px}
+.onb{position:absolute;inset:0;z-index:40;background:var(--dk);color:var(--cr);display:flex;flex-direction:column}
+.onb .slides{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory}
+.onb .slides::-webkit-scrollbar{display:none}
+.onb .sl{flex:none;width:100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:24px 28px;gap:18px}
+.onb .ill{height:260px;display:grid;place-items:center}
+.onb h2{font-size:30px;line-height:1.1;letter-spacing:-.02em}
+.onb p{color:#C9DDD8;font-size:16px}
+.onb .ft{padding:12px 24px calc(28px + env(safe-area-inset-bottom));display:grid;gap:12px}
+.onb .dots{display:flex;gap:8px;justify-content:center;margin-bottom:6px}
+.onb .dots i{width:8px;height:8px;border-radius:4px;background:#2E5F58;transition:width .2s}
+.onb .dots i.on{width:24px;background:var(--or)}
+.onb .skip{position:absolute;top:52px;right:20px;color:#C9DDD8;font-size:15px;min-height:44px;padding:0 6px}
+.onb .lnk{color:#C9DDD8;font-size:13px;text-align:center}
+.demo{font-size:12px;color:var(--mu);text-align:center;padding:16px 24px 8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:var(--mu)}
+.kv dd{margin:0;text-align:right;font-weight:500}
+.card .tile svg.art{width:74%;height:auto}
+.hero svg.art{width:230px;height:auto}
+.mapx{position:absolute;right:10px;top:10px;width:40px;height:40px;border-radius:12px;background:rgba(255,253,248,.95);display:grid;place-items:center;border:1px solid var(--mt2)}
+.mapfull{position:relative;margin:0 16px;border-radius:24px;overflow:hidden;aspect-ratio:358/470;background:var(--mt);border:1px solid var(--mt2)}
+.mapfull>svg{position:absolute;inset:0;width:100%;height:100%}
+.ownb{display:flex;gap:8px}
+.bubs{display:flex;flex-direction:column;gap:8px;padding:8px 16px 16px}
+.bb{max-width:78%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.35;background:var(--pp);border:1px solid var(--ln);align-self:flex-start;border-bottom-left-radius:6px}
+.bb.mine{align-self:flex-end;background:var(--dk);color:var(--cr);border-color:var(--dk);border-bottom-left-radius:18px;border-bottom-right-radius:6px}
+.bb small{display:block;font-size:11px;opacity:.65;margin-top:3px;text-align:right}
+.typing{display:flex;gap:4px;padding:14px}
+.typing i{width:7px;height:7px;border-radius:4px;background:var(--mu);animation:ty 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.compose{flex:none;display:flex;gap:8px;align-items:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:var(--pp);border-top:1px solid var(--ln)}
+.compose input{flex:1;height:46px;border-radius:23px;border:1px solid var(--ln);padding:0 16px;font-size:16px;background:var(--cr);outline:none}
+.compose input:focus{border-color:var(--dk)}
+.compose .send{width:46px;height:46px;border-radius:23px;background:var(--or);display:grid;place-items:center;flex:none}
+.quick{display:flex;gap:8px;overflow-x:auto;padding:0 12px 8px;background:var(--pp)}
+.quick::-webkit-scrollbar{display:none}
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px}
+.days::-webkit-scrollbar{display:none}
+.days button{flex:none;width:58px;height:70px;border-radius:16px;border:1px solid var(--ln);background:var(--pp);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--mu)}
+.days button b{font-size:20px;color:var(--dk)}
+.days button.on{background:var(--dk);border-color:var(--dk);color:#C9DDD8}
+.days button.on b{color:var(--cr)}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slots button{height:44px;border-radius:12px;border:1px solid var(--ln);background:var(--pp);font-weight:600;font-size:14px}
+.slots button.on{background:var(--dk);color:var(--cr);border-color:var(--dk)}
+.bars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end;height:150px;margin-top:14px}
+.bars div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-size:11px;color:#C9DDD8}
+.bars i{display:block;width:100%;border-radius:8px 8px 3px 3px;background:#2E5F58;transition:height .5s}
+.bars div.cur i{background:var(--or)}
+.bars b{font-size:11px;color:var(--cr);font-weight:600;white-space:nowrap}
+.code-inv{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--pp);border:2px dashed var(--or);border-radius:18px;padding:14px 16px;margin-top:12px}
+.code-inv b{font-size:26px;letter-spacing:.08em}
+.conf{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;z-index:50;pointer-events:none;animation:cf 1.5s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes cf{to{transform:translate(var(--dx),860px) rotate(var(--r));opacity:.9}}
+@media (prefers-reduced-motion:reduce){.conf{display:none}}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mu);margin-left:8px}
+.balchip{height:44px;border-radius:22px;padding:0 12px;background:var(--pp);border:1px solid var(--ln);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;white-space:nowrap;flex:none}
+.balchip .i{color:var(--ort)}
+.opt .cc,.opt .wl{width:44px;height:30px;border-radius:7px;flex:none;position:relative}
+.opt .cc{background:linear-gradient(135deg,#1C4540,#12332F)}
+.opt .cc::after{content:"";position:absolute;left:7px;top:10px;width:11px;height:8px;border-radius:2px;background:#F2994A}
+.opt .wl{background:var(--or);display:grid;place-items:center;color:var(--dk)}
+.opt button[disabled]{opacity:.5}
+.txr{display:flex;align-items:center;gap:12px;padding:12px 0}
+.txr+.txr{border-top:1px solid var(--ln)}
+.txr .ni{width:38px;height:38px;border-radius:19px;display:grid;place-items:center;flex:none}
+.txr b{font-size:15px;font-weight:600;display:block}
+.txr small{color:var(--mu);font-size:12px}
+.txr .amt{margin-left:auto;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.amts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.amts button{height:56px;border-radius:14px;border:1.5px solid var(--ln);background:var(--pp);font-weight:700;font-size:17px}
+.amts button.on{border-color:var(--dk);background:var(--mt)}
+.reset{display:block;margin:14px auto 0;color:var(--mu);font-size:13px;text-decoration:underline;min-height:44px}
+@media (max-width:900px){.stage{grid-template-columns:auto;gap:0}.guide{display:none}}
+@media (max-width:600px){body{background:var(--cr)}.stage{padding:0;display:block}.phone{width:100%;height:100%;border-radius:0;padding:0;box-shadow:none;background:var(--cr)}.app{border-radius:0}.sbar{display:none}.app{padding-top:env(safe-area-inset-top)}.onb .skip{top:calc(12px + env(safe-area-inset-top))}}
+
+/* Uygulama olarak açıldığında (ana ekrandan / masaüstünden): sunum rehberi gizlenir */
+@media (display-mode:standalone),(display-mode:fullscreen){.stage{grid-template-columns:auto;gap:0}.guide{display:none}}
+@media (display-mode:standalone) and (max-width:600px),(display-mode:fullscreen) and (max-width:600px){body{background:var(--cr)}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="guide" aria-label="Sunum rehberi">
+    <div class="brand"><svg width="36" height="36" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#F7F3EA"/><rect x="5" y="5" width="10" height="10" rx="2" fill="#12332F"/><rect x="17" y="5" width="10" height="10" rx="2" fill="#F2994A"/><rect x="5" y="17" width="10" height="10" rx="2" fill="#12332F"/><rect x="17" y="17" width="10" height="10" rx="2" fill="#12332F"/></svg>KiraKutu</div>
+    <h1>Mahallenin kiralık eşya dolabı</h1>
+    <p>Tıklanabilir prototip. Sağdaki telefonda her şey çalışır; sunumda aşağıdaki senaryolardan birini seçip baştan sona gösterin.</p>
+    <h2>Sunum senaryoları</h2>
+    <div class="scn">
+      <button type="button" data-scn="emre"><span class="n">1</span><span><b>Emre matkap kiralıyor</b><small>Bul, kirala, kodla aç</small></span></button>
+      <button type="button" data-scn="selin"><span class="n">2</span><span><b>Selin saç maşası kiralıyor</b><small>Yurt önündeki dolaptan</small></span></button>
+      <button type="button" data-scn="iade"><span class="n">3</span><span><b>İade ve puanlama</b><small>Bölmeye bırak, depozito kalksın</small></span></button>
+      <button type="button" data-scn="ileri"><span class="n">+</span><span><b>Cumartesiye bavul ayır</b><small>İleri tarihli rezervasyon, ücretsiz iptal</small></span></button>
+      <button type="button" data-scn="gec"><span class="n">!</span><span><b>Geç iade</b><small>Hatırlatma, gecikme ücreti, haber ver</small></span></button>
+      <button type="button" data-scn="acilmadi"><span class="n">!</span><span><b>Dolap açılmadı</b><small>Uzaktan açma, iade, destek talebi</small></span></button>
+      <button type="button" data-scn="ver"><span class="n">4</span><span><b>Eşyanı kiraya ver</b><small>Fotoğraf, fiyat, dolap seç</small></span></button>
+      <button type="button" data-scn="defne"><span class="n">5</span><span><b>Kiraya verdiklerim</b><small>Aynı hesapta kazanç paneli</small></span></button>
+      <button type="button" data-scn="bas"><span class="n">↺</span><span><b>Baştan başla</b><small>Tanıtım ekranlarıyla</small></span></button>
+    </div>
+    <div class="qr" id="qrPanel"><div class="qbox" id="qrBox"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 37" width="37" height="37" shape-rendering="crispEdges" aria-label="KiraKutu prototipi QR kodu"><rect width="37" height="37" fill="#FFFFFF"/><g fill="#12332F"><rect x="2" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="7" y="2" width="1" height="1"/><rect x="8" y="2" width="1" height="1"/><rect x="10" y="2" width="1" height="1"/><rect x="11" y="2" width="1" height="1"/><rect x="13" y="2" width="1" height="1"/><rect x="14" y="2" width="1" height="1"/><rect x="15" y="2" width="1" height="1"/><rect x="18" y="2" width="1" height="1"/><rect x="20" y="2" width="1" height="1"/><rect x="25" y="2" width="1" height="1"/><rect x="28" y="2" width="1" height="1"/><rect x="29" y="2" width="1" height="1"/><rect x="30" y="2" width="1" height="1"/><rect x="31" y="2" width="1" height="1"/><rect x="32" y="2" width="1" height="1"/><rect x="33" y="2" width="1" height="1"/><rect x="34" y="2" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="13" y="3" width="1" height="1"/><rect x="15" y="3" width="1" height="1"/><rect x="16" y="3" width="1" height="1"/><rect x="20" y="3" width="1" height="1"/><rect x="21" y="3" width="1" height="1"/><rect x="22" y="3" width="1" height="1"/><rect x="26" y="3" width="1" height="1"/><rect x="28" y="3" width="1" height="1"/><rect x="34" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/><rect x="16" y="4" width="1" height="1"/><rect x="18" y="4" width="1" height="1"/><rect x="19" y="4" width="1" height="1"/><rect x="20" y="4" width="1" height="1"/><rect x="22" y="4" width="1" height="1"/><rect x="23" y="4" width="1" height="1"/><rect x="24" y="4" width="1" height="1"/><rect x="25" y="4" width="1" height="1"/><rect x="26" y="4" width="1" height="1"/><rect x="28" y="4" width="1" height="1"/><rect x="30" y="4" width="1" height="1"/><rect x="31" y="4" width="1" height="1"/><rect x="32" y="4" width="1" height="1"/><rect x="34" y="4" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="8" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="14" y="5" width="1" height="1"/><rect x="18" y="5" width="1" height="1"/><rect x="19" y="5" width="1" height="1"/><rect x="23" y="5" width="1" height="1"/><rect x="25" y="5" width="1" height="1"/><rect x="26" y="5" width="1" height="1"/><rect x="28" y="5" width="1" height="1"/><rect x="30" y="5" width="1" height="1"/><rect x="31" y="5" width="1" height="1"/><rect x="32" y="5" width="1" height="1"/><rect x="34" y="5" width="1" height="1"/><rect x="2" y="6" width="1" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="5" y="6" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="11" y="6" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="15" y="6" width="1" height="1"/><rect x="18" y="6" width="1" height="1"/><rect x="19" y="6" width="1" height="1"/><rect x="21" y="6" width="1" height="1"/><rect x="28" y="6" width="1" height="1"/><rect x="30" y="6" width="1" height="1"/><rect x="31" y="6" width="1" height="1"/><rect x="32" y="6" width="1" height="1"/><rect x="34" y="6" width="1" height="1"/><rect x="2" y="7" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/><rect x="11" y="7" width="1" height="1"/><rect x="12" y="7" width="1" height="1"/><rect x="13" y="7" width="1" height="1"/><rect x="14" y="7" width="1" height="1"/><rect x="16" y="7" width="1" height="1"/><rect x="17" y="7" width="1" height="1"/><rect x="20" y="7" width="1" height="1"/><rect x="22" y="7" width="1" height="1"/><rect x="24" y="7" width="1" height="1"/><rect x="28" y="7" width="1" height="1"/><rect x="34" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="3" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="6" y="8" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="12" y="8" width="1" height="1"/><rect x="14" y="8" width="1" height="1"/><rect x="16" y="8" width="1" height="1"/><rect x="18" y="8" width="1" height="1"/><rect x="20" y="8" width="1" height="1"/><rect x="22" y="8" width="1" height="1"/><rect x="24" y="8" width="1" height="1"/><rect x="26" y="8" width="1" height="1"/><rect x="28" y="8" width="1" height="1"/><rect x="29" y="8" width="1" height="1"/><rect x="30" y="8" width="1" height="1"/><rect x="31" y="8" width="1" height="1"/><rect x="32" y="8" width="1" height="1"/><rect x="33" y="8" width="1" height="1"/><rect x="34" y="8" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="12" y="9" width="1" height="1"/><rect x="13" y="9" width="1" height="1"/><rect x="16" y="9" width="1" height="1"/><rect x="19" y="9" width="1" height="1"/><rect x="20" y="9" width="1" height="1"/><rect x="21" y="9" width="1" height="1"/><rect x="22" y="9" width="1" height="1"/><rect x="23" y="9" width="1" height="1"/><rect x="25" y="9" width="1" height="1"/><rect x="26" y="9" width="1" height="1"/><rect x="2" y="10" width="1" height="1"/><rect x="6" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="13" y="10" width="1" height="1"/><rect x="17" y="10" width="1" height="1"/><rect x="19" y="10" width="1" height="1"/><rect x="23" y="10" width="1" height="1"/><rect x="26" y="10" width="1" height="1"/><rect x="27" y="10" width="1" height="1"/><rect x="28" y="10" width="1" height="1"/><rect x="29" y="10" width="1" height="1"/><rect x="30" y="10" width="1" height="1"/><rect x="31" y="10" width="1" height="1"/><rect x="34" y="10" width="1" height="1"/><rect x="2" y="11" width="1" height="1"/><rect x="6" y="11" width="1" height="1"/><rect x="12" y="11" width="1" height="1"/><rect x="13" y="11" width="1" height="1"/><rect x="14" y="11" width="1" height="1"/><rect x="17" y="11" width="1" height="1"/><rect x="18" y="11" width="1" height="1"/><rect x="19" y="11" width="1" height="1"/><rect x="20" y="11" width="1" height="1"/><rect x="25" y="11" width="1" height="1"/><rect x="27" y="11" width="1" height="1"/><rect x="31" y="11" width="1" height="1"/><rect x="32" y="11" width="1" height="1"/><rect x="33" y="11" width="1" height="1"/><rect x="2" y="12" width="1" height="1"/><rect x="4" y="12" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="8" y="12" width="1" height="1"/><rect x="11" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="15" y="12" width="1" height="1"/><rect x="16" y="12" width="1" height="1"/><rect x="17" y="12" width="1" height="1"/><rect x="20" y="12" width="1" height="1"/><rect x="24" y="12" width="1" height="1"/><rect x="25" y="12" width="1" height="1"/><rect x="26" y="12" width="1" height="1"/><rect x="27" y="12" width="1" height="1"/><rect x="31" y="12" width="1" height="1"/><rect x="33" y="12" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="7" y="13" width="1" height="1"/><rect x="10" y="13" width="1" height="1"/><rect x="13" y="13" width="1" height="1"/><rect x="15" y="13" width="1" height="1"/><rect x="17" y="13" width="1" height="1"/><rect x="21" y="13" width="1" height="1"/><rect x="23" y="13" width="1" height="1"/><rect x="25" y="13" width="1" height="1"/><rect x="26" y="13" width="1" height="1"/><rect x="27" y="13" width="1" height="1"/><rect x="34" y="13" width="1" height="1"/><rect x="5" y="14" width="1" height="1"/><rect x="8" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/><rect x="15" y="14" width="1" height="1"/><rect x="18" y="14" width="1" height="1"/><rect x="21" y="14" width="1" height="1"/><rect x="24" y="14" width="1" height="1"/><rect x="28" y="14" width="1" height="1"/><rect x="29" y="14" width="1" height="1"/><rect x="31" y="14" width="1" height="1"/><rect x="3" y="15" width="1" height="1"/><rect x="4" y="15" width="1" height="1"/><rect x="6" y="15" width="1" height="1"/><rect x="7" y="15" width="1" height="1"/><rect x="11" y="15" width="1" height="1"/><rect x="12" y="15" width="1" height="1"/><rect x="15" y="15" width="1" height="1"/><rect x="16" y="15" width="1" height="1"/><rect x="20" y="15" width="1" height="1"/><rect x="21" y="15" width="1" height="1"/><rect x="22" y="15" width="1" height="1"/><rect x="23" y="15" width="1" height="1"/><rect x="24" y="15" width="1" height="1"/><rect x="25" y="15" width="1" height="1"/><rect x="26" y="15" width="1" height="1"/><rect x="27" y="15" width="1" height="1"/><rect x="29" y="15" width="1" height="1"/><rect x="31" y="15" width="1" height="1"/><rect x="2" y="16" width="1" height="1"/><rect x="3" y="16" width="1" height="1"/><rect x="4" y="16" width="1" height="1"/><rect x="5" y="16" width="1" height="1"/><rect x="8" y="16" width="1" height="1"/><rect x="12" y="16" width="1" height="1"/><rect x="14" y="16" width="1" height="1"/><rect x="15" y="16" width="1" height="1"/><rect x="16" y="16" width="1" height="1"/><rect x="17" y="16" width="1" height="1"/><rect x="20" y="16" width="1" height="1"/><rect x="22" y="16" width="1" height="1"/><rect x="25" y="16" width="1" height="1"/><rect x="26" y="16" width="1" height="1"/><rect x="27" y="16" width="1" height="1"/><rect x="28" y="16" width="1" height="1"/><rect x="30" y="16" width="1" height="1"/><rect x="32" y="16" width="1" height="1"/><rect x="33" y="16" width="1" height="1"/><rect x="2" y="17" width="1" height="1"/><rect x="5" y="17" width="1" height="1"/><rect x="6" y="17" width="1" height="1"/><rect x="9" y="17" width="1" height="1"/><rect x="11" y="17" width="1" height="1"/><rect x="12" y="17" width="1" height="1"/><rect x="14" y="17" width="1" height="1"/><rect x="15" y="17" width="1" height="1"/><rect x="16" y="17" width="1" height="1"/><rect x="17" y="17" width="1" height="1"/><rect x="18" y="17" width="1" height="1"/><rect x="19" y="17" width="1" height="1"/><rect x="23" y="17" width="1" height="1"/><rect x="24" y="17" width="1" height="1"/><rect x="25" y="17" width="1" height="1"/><rect x="27" y="17" width="1" height="1"/><rect x="28" y="17" width="1" height="1"/><rect x="29" y="17" width="1" height="1"/><rect x="4" y="18" width="1" height="1"/><rect x="5" y="18" width="1" height="1"/><rect x="6" y="18" width="1" height="1"/><rect x="8" y="18" width="1" height="1"/><rect x="13" y="18" width="1" height="1"/><rect x="14" y="18" width="1" height="1"/><rect x="18" y="18" width="1" height="1"/><rect x="19" y="18" width="1" height="1"/><rect x="21" y="18" width="1" height="1"/><rect x="23" y="18" width="1" height="1"/><rect x="24" y="18" width="1" height="1"/><rect x="25" y="18" width="1" height="1"/><rect x="28" y="18" width="1" height="1"/><rect x="30" y="18" width="1" height="1"/><rect x="31" y="18" width="1" height="1"/><rect x="32" y="18" width="1" height="1"/><rect x="33" y="18" width="1" height="1"/><rect x="3" y="19" width="1" height="1"/><rect x="9" y="19" width="1" height="1"/><rect x="15" y="19" width="1" height="1"/><rect x="17" y="19" width="1" height="1"/><rect x="20" y="19" width="1" height="1"/><rect x="23" y="19" width="1" height="1"/><rect x="25" y="19" width="1" height="1"/><rect x="27" y="19" width="1" height="1"/><rect x="31" y="19" width="1" height="1"/><rect x="32" y="19" width="1" height="1"/><rect x="33" y="19" width="1" height="1"/><rect x="34" y="19" width="1" height="1"/><rect x="2" y="20" width="1" height="1"/><rect x="4" y="20" width="1" height="1"/><rect x="7" y="20" width="1" height="1"/><rect x="8" y="20" width="1" height="1"/><rect x="9" y="20" width="1" height="1"/><rect x="11" y="20" width="1" height="1"/><rect x="12" y="20" width="1" height="1"/><rect x="13" y="20" width="1" height="1"/><rect x="15" y="20" width="1" height="1"/><rect x="17" y="20" width="1" height="1"/><rect x="19" y="20" width="1" height="1"/><rect x="22" y="20" width="1" height="1"/><rect x="24" y="20" width="1" height="1"/><rect x="25" y="20" width="1" height="1"/><rect x="26" y="20" width="1" height="1"/><rect x="28" y="20" width="1" height="1"/><rect x="29" y="20" width="1" height="1"/><rect x="31" y="20" width="1" height="1"/><rect x="33" y="20" width="1" height="1"/><rect x="2" y="21" width="1" height="1"/><rect x="6" y="21" width="1" height="1"/><rect x="11" y="21" width="1" height="1"/><rect x="12" y="21" width="1" height="1"/><rect x="15" y="21" width="1" height="1"/><rect x="19" y="21" width="1" height="1"/><rect x="20" y="21" width="1" height="1"/><rect x="23" y="21" width="1" height="1"/><rect x="24" y="21" width="1" height="1"/><rect x="25" y="21" width="1" height="1"/><rect x="27" y="21" width="1" height="1"/><rect x="29" y="21" width="1" height="1"/><rect x="5" y="22" width="1" height="1"/><rect x="6" y="22" width="1" height="1"/><rect x="8" y="22" width="1" height="1"/><rect x="9" y="22" width="1" height="1"/><rect x="13" y="22" width="1" height="1"/><rect x="15" y="22" width="1" height="1"/><rect x="16" y="22" width="1" height="1"/><rect x="17" y="22" width="1" height="1"/><rect x="20" y="22" width="1" height="1"/><rect x="21" y="22" width="1" height="1"/><rect x="22" y="22" width="1" height="1"/><rect x="24" y="22" width="1" height="1"/><rect x="26" y="22" width="1" height="1"/><rect x="27" y="22" width="1" height="1"/><rect x="28" y="22" width="1" height="1"/><rect x="29" y="22" width="1" height="1"/><rect x="30" y="22" width="1" height="1"/><rect x="31" y="22" width="1" height="1"/><rect x="34" y="22" width="1" height="1"/><rect x="2" y="23" width="1" height="1"/><rect x="3" y="23" width="1" height="1"/><rect x="4" y="23" width="1" height="1"/><rect x="9" y="23" width="1" height="1"/><rect x="13" y="23" width="1" height="1"/><rect x="18" y="23" width="1" height="1"/><rect x="21" y="23" width="1" height="1"/><rect x="25" y="23" width="1" height="1"/><rect x="29" y="23" width="1" height="1"/><rect x="32" y="23" width="1" height="1"/><rect x="33" y="23" width="1" height="1"/><rect x="6" y="24" width="1" height="1"/><rect x="7" y="24" width="1" height="1"/><rect x="8" y="24" width="1" height="1"/><rect x="9" y="24" width="1" height="1"/><rect x="10" y="24" width="1" height="1"/><rect x="13" y="24" width="1" height="1"/><rect x="16" y="24" width="1" height="1"/><rect x="18" y="24" width="1" height="1"/><rect x="19" y="24" width="1" height="1"/><rect x="21" y="24" width="1" height="1"/><rect x="23" y="24" width="1" height="1"/><rect x="24" y="24" width="1" height="1"/><rect x="25" y="24" width="1" height="1"/><rect x="26" y="24" width="1" height="1"/><rect x="29" y="24" width="1" height="1"/><rect x="32" y="24" width="1" height="1"/><rect x="33" y="24" width="1" height="1"/><rect x="4" y="25" width="1" height="1"/><rect x="6" y="25" width="1" height="1"/><rect x="7" y="25" width="1" height="1"/><rect x="11" y="25" width="1" height="1"/><rect x="12" y="25" width="1" height="1"/><rect x="13" y="25" width="1" height="1"/><rect x="14" y="25" width="1" height="1"/><rect x="15" y="25" width="1" height="1"/><rect x="16" y="25" width="1" height="1"/><rect x="19" y="25" width="1" height="1"/><rect x="20" y="25" width="1" height="1"/><rect x="21" y="25" width="1" height="1"/><rect x="22" y="25" width="1" height="1"/><rect x="23" y="25" width="1" height="1"/><rect x="25" y="25" width="1" height="1"/><rect x="27" y="25" width="1" height="1"/><rect x="28" y="25" width="1" height="1"/><rect x="30" y="25" width="1" height="1"/><rect x="33" y="25" width="1" height="1"/><rect x="2" y="26" width="1" height="1"/><rect x="3" y="26" width="1" height="1"/><rect x="4" y="26" width="1" height="1"/><rect x="5" y="26" width="1" height="1"/><rect x="8" y="26" width="1" height="1"/><rect x="10" y="26" width="1" height="1"/><rect x="11" y="26" width="1" height="1"/><rect x="13" y="26" width="1" height="1"/><rect x="16" y="26" width="1" height="1"/><rect x="17" y="26" width="1" height="1"/><rect x="19" y="26" width="1" height="1"/><rect x="22" y="26" width="1" height="1"/><rect x="23" y="26" width="1" height="1"/><rect x="24" y="26" width="1" height="1"/><rect x="25" y="26" width="1" height="1"/><rect x="26" y="26" width="1" height="1"/><rect x="27" y="26" width="1" height="1"/><rect x="28" y="26" width="1" height="1"/><rect x="29" y="26" width="1" height="1"/><rect x="30" y="26" width="1" height="1"/><rect x="31" y="26" width="1" height="1"/><rect x="33" y="26" width="1" height="1"/><rect x="34" y="26" width="1" height="1"/><rect x="10" y="27" width="1" height="1"/><rect x="11" y="27" width="1" height="1"/><rect x="14" y="27" width="1" height="1"/><rect x="15" y="27" width="1" height="1"/><rect x="17" y="27" width="1" height="1"/><rect x="19" y="27" width="1" height="1"/><rect x="20" y="27" width="1" height="1"/><rect x="26" y="27" width="1" height="1"/><rect x="30" y="27" width="1" height="1"/><rect x="32" y="27" width="1" height="1"/><rect x="33" y="27" width="1" height="1"/><rect x="2" y="28" width="1" height="1"/><rect x="3" y="28" width="1" height="1"/><rect x="4" y="28" width="1" height="1"/><rect x="5" y="28" width="1" height="1"/><rect x="6" y="28" width="1" height="1"/><rect x="7" y="28" width="1" height="1"/><rect x="8" y="28" width="1" height="1"/><rect x="10" y="28" width="1" height="1"/><rect x="13" y="28" width="1" height="1"/><rect x="14" y="28" width="1" height="1"/><rect x="17" y="28" width="1" height="1"/><rect x="18" y="28" width="1" height="1"/><rect x="20" y="28" width="1" height="1"/><rect x="22" y="28" width="1" height="1"/><rect x="24" y="28" width="1" height="1"/><rect x="26" y="28" width="1" height="1"/><rect x="28" y="28" width="1" height="1"/><rect x="30" y="28" width="1" height="1"/><rect x="31" y="28" width="1" height="1"/><rect x="33" y="28" width="1" height="1"/><rect x="2" y="29" width="1" height="1"/><rect x="8" y="29" width="1" height="1"/><rect x="14" y="29" width="1" height="1"/><rect x="15" y="29" width="1" height="1"/><rect x="16" y="29" width="1" height="1"/><rect x="17" y="29" width="1" height="1"/><rect x="21" y="29" width="1" height="1"/><rect x="22" y="29" width="1" height="1"/><rect x="23" y="29" width="1" height="1"/><rect x="24" y="29" width="1" height="1"/><rect x="26" y="29" width="1" height="1"/><rect x="30" y="29" width="1" height="1"/><rect x="2" y="30" width="1" height="1"/><rect x="4" y="30" width="1" height="1"/><rect x="5" y="30" width="1" height="1"/><rect x="6" y="30" width="1" height="1"/><rect x="8" y="30" width="1" height="1"/><rect x="10" y="30" width="1" height="1"/><rect x="11" y="30" width="1" height="1"/><rect x="13" y="30" width="1" height="1"/><rect x="15" y="30" width="1" height="1"/><rect x="16" y="30" width="1" height="1"/><rect x="18" y="30" width="1" height="1"/><rect x="22" y="30" width="1" height="1"/><rect x="24" y="30" width="1" height="1"/><rect x="26" y="30" width="1" height="1"/><rect x="27" y="30" width="1" height="1"/><rect x="28" y="30" width="1" height="1"/><rect x="29" y="30" width="1" height="1"/><rect x="30" y="30" width="1" height="1"/><rect x="31" y="30" width="1" height="1"/><rect x="33" y="30" width="1" height="1"/><rect x="34" y="30" width="1" height="1"/><rect x="2" y="31" width="1" height="1"/><rect x="4" y="31" width="1" height="1"/><rect x="5" y="31" width="1" height="1"/><rect x="6" y="31" width="1" height="1"/><rect x="8" y="31" width="1" height="1"/><rect x="11" y="31" width="1" height="1"/><rect x="16" y="31" width="1" height="1"/><rect x="20" y="31" width="1" height="1"/><rect x="21" y="31" width="1" height="1"/><rect x="22" y="31" width="1" height="1"/><rect x="23" y="31" width="1" height="1"/><rect x="26" y="31" width="1" height="1"/><rect x="28" y="31" width="1" height="1"/><rect x="29" y="31" width="1" height="1"/><rect x="30" y="31" width="1" height="1"/><rect x="31" y="31" width="1" height="1"/><rect x="32" y="31" width="1" height="1"/><rect x="2" y="32" width="1" height="1"/><rect x="4" y="32" width="1" height="1"/><rect x="5" y="32" width="1" height="1"/><rect x="6" y="32" width="1" height="1"/><rect x="8" y="32" width="1" height="1"/><rect x="11" y="32" width="1" height="1"/><rect x="13" y="32" width="1" height="1"/><rect x="14" y="32" width="1" height="1"/><rect x="17" y="32" width="1" height="1"/><rect x="23" y="32" width="1" height="1"/><rect x="24" y="32" width="1" height="1"/><rect x="26" y="32" width="1" height="1"/><rect x="28" y="32" width="1" height="1"/><rect x="29" y="32" width="1" height="1"/><rect x="30" y="32" width="1" height="1"/><rect x="31" y="32" width="1" height="1"/><rect x="2" y="33" width="1" height="1"/><rect x="8" y="33" width="1" height="1"/><rect x="11" y="33" width="1" height="1"/><rect x="12" y="33" width="1" height="1"/><rect x="13" y="33" width="1" height="1"/><rect x="15" y="33" width="1" height="1"/><rect x="16" y="33" width="1" height="1"/><rect x="17" y="33" width="1" height="1"/><rect x="18" y="33" width="1" height="1"/><rect x="19" y="33" width="1" height="1"/><rect x="20" y="33" width="1" height="1"/><rect x="22" y="33" width="1" height="1"/><rect x="23" y="33" width="1" height="1"/><rect x="28" y="33" width="1" height="1"/><rect x="31" y="33" width="1" height="1"/><rect x="2" y="34" width="1" height="1"/><rect x="3" y="34" width="1" height="1"/><rect x="4" y="34" width="1" height="1"/><rect x="5" y="34" width="1" height="1"/><rect x="6" y="34" width="1" height="1"/><rect x="7" y="34" width="1" height="1"/><rect x="8" y="34" width="1" height="1"/><rect x="10" y="34" width="1" height="1"/><rect x="13" y="34" width="1" height="1"/><rect x="14" y="34" width="1" height="1"/><rect x="15" y="34" width="1" height="1"/><rect x="18" y="34" width="1" height="1"/><rect x="19" y="34" width="1" height="1"/><rect x="22" y="34" width="1" height="1"/><rect x="23" y="34" width="1" height="1"/><rect x="25" y="34" width="1" height="1"/><rect x="26" y="34" width="1" height="1"/><rect x="27" y="34" width="1" height="1"/><rect x="28" y="34" width="1" height="1"/><rect x="31" y="34" width="1" height="1"/><rect x="34" y="34" width="1" height="1"/></g></svg></div><p><b>Telefonunla dene</b><br>Kamerayla okut, uygulama telefonunda açılsın.</p></div>
+    <p class="note">Prototiptir: ödeme, kimlik doğrulama ve dolap bağlantısı temsilîdir. Eşyalar, kişiler ve fiyatlar örnektir.</p>
+  </aside>
+  <div class="phone">
+    <div class="app" id="app">
+      <div class="sbar" aria-hidden="true"><span id="clock">9:41</span><span class="isl"></span><span class="r"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#12332F"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#12332F"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#12332F"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#12332F"/></svg><svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="#12332F"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="#12332F"/><rect x="23.5" y="4" width="2" height="4" rx="1" fill="#12332F"/></svg></span></div>
+      <div class="view" id="view"></div>
+      <div class="ov" id="ov"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="load" id="load"><div class="spin"></div><span id="loadTxt">Ödeme onaylanıyor…</span></div>
+    </div>
+  </div>
+</div>
+<script>
+{
+const FORM_URL = ""; // Google Forms anket bağlantınızı buraya yazın (https:// ile)
+const P = {
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  locker:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 3v18M4 12h16M9.5 7.5v1M14.5 7.5v1M9.5 16v1M14.5 16v1"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>', minus:'<path d="M5 12h14"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  back:'<path d="M15 18l-6-6 6-6"/>', chev:'<path d="M9 18l6-6-6-6"/>',
+  star:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
+  heart:'<path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
+  camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  check:'<path d="M5 12l5 5 9-10"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  wallet:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/>',
+  nav:'<path d="M3 11l18-8-8 18-2-8z"/>',
+  image:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-8 7"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  leaf:'<path d="M5 19C5 10 11 5 20 4c-1 9-6 15-15 15z"/><path d="M5 19l7-7"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>',
+  list:'<path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  sliders:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2 6"/><path d="M20 5v6h-6"/>',
+  alert:'<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17h.01"/>',
+  gift:'<rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13M12 8c-2-4-6-4-6-1.5S10 8 12 8c2 0 6 1 6-1.5S14 4 12 8"/>',
+  trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2a5 5 0 0 1 6 5.8"/>',
+  door:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M15 12h.01"/>',
+  send:'<path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/>'
+};
+const T = {
+  drill:'<path d="M4 8h10l2 2h3v2h-3l-2 2H4z"/><path d="M19 11h3"/><path d="M7 14l-1 6h4l1-6"/><path d="M7 11h4"/>',
+  curler:'<rect x="2" y="10.5" width="12" height="5" rx="2.5"/><path d="M3.5 8.2l9.5-1.7"/><path d="M13 6.5v4"/><rect x="14" y="10" width="7.5" height="6" rx="2"/><path d="M16.5 13h2.5"/>',
+  straight:'<path d="M5 21L13 3"/><path d="M9 21l7.5-17"/><path d="M13 3l3.5 1"/><path d="M6.5 17.5l3.5 1.5"/>',
+  suitcase:'<rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3"/><path d="M9 11v5M15 11v5"/><path d="M8 20v1.5M16 20v1.5"/>',
+  projector:'<rect x="2" y="8" width="20" height="9" rx="2"/><circle cx="16" cy="12.5" r="2.5"/><path d="M6 11h4M6 14h3"/><path d="M5 17v2M19 17v2"/>',
+  camera:'<path d="M3 8h3.5l2-3h7l2 3H21v11H3z"/><circle cx="12" cy="13" r="3.8"/><path d="M17.5 10.5h.01"/>',
+  gamepad:'<path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.5 1.6L15 14H9l-1.5 1.6A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4z"/><path d="M7 11v3M5.5 12.5h3"/><path d="M16 11.8h.01M18 13.3h.01"/>',
+  ring:'<circle cx="12" cy="8" r="5"/><circle cx="12" cy="8" r="2.5"/><path d="M12 13v8M8 21h8M12 17l-4 4M12 17l4 4"/>',
+  tent:'<path d="M3 20L12 4l9 16z"/><path d="M12 4v16"/><path d="M9 20l3-5 3 5"/>',
+  ladder:'<path d="M8 3v18M16 3v18M8 7h8M8 11h8M8 15h8"/>',
+  calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="4" rx="1"/><path d="M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01M8.5 17h.01M12 17h.01M15.5 17h.01"/>',
+  iron:'<path d="M3 17h16.5l.5-5a5 5 0 0 0-5-5H9"/><path d="M3 17l2.5-5H20"/><path d="M8 7l1-3h6"/>',
+  racket:'<ellipse cx="10" cy="9" rx="6" ry="7"/><path d="M14 14.5l6 6.5"/><path d="M5.5 7h9M4.5 10.5h11M6.5 14h7"/>',
+  mixer:'<path d="M4 5h11a3 3 0 0 1 0 6H8"/><path d="M8 11v3"/><path d="M5 14h8l-1 6H6z"/><path d="M4 5v15"/>',
+  box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+  speaker:'<rect x="6" y="3" width="12" height="18" rx="3"/><circle cx="12" cy="14" r="3.5"/><circle cx="12" cy="7.5" r="1.2"/>'
+};
+const SH='<ellipse cx="50" cy="73" rx="34" ry="4" fill="#12332F" opacity=".12"/>';
+const ILL = {
+  drill:'<rect x="18" y="22" width="46" height="20" rx="8" fill="#F2994A"/><rect x="18" y="22" width="46" height="7" rx="3.5" fill="#F7B27A"/><rect x="64" y="26" width="10" height="12" rx="2" fill="#43524E"/><rect x="74" y="30" width="16" height="4" rx="2" fill="#C9D1CF"/><path d="M30 42h16l-4 20H28z" fill="#12332F"/><rect x="24" y="60" width="26" height="10" rx="3" fill="#12332F"/><rect x="27" y="63" width="8" height="4" rx="1" fill="#2E7A5E"/><circle cx="27" cy="32" r="3" fill="#12332F"/>',
+  curler:'<rect x="10" y="34" width="52" height="14" rx="7" fill="#C9D1CF"/><rect x="10" y="34" width="52" height="5" rx="2.5" fill="#F1F4F3"/><path d="M14 29L58 23l2 6-44 6z" fill="#E07A95"/><rect x="62" y="31" width="26" height="19" rx="6" fill="#E07A95"/><rect x="62" y="31" width="26" height="6" rx="3" fill="#EC9DB2"/><rect x="66" y="40" width="8" height="5" rx="2.5" fill="#12332F"/><path d="M88 42c7 1 7 18-3 20" stroke="#12332F" stroke-width="3" fill="none" stroke-linecap="round"/>',
+  straight:'<path d="M22 66L70 14l6 4-46 50z" fill="#3B3F4E"/><path d="M31 68L80 22l4 5-47 44z" fill="#5B6070"/><path d="M56 29l14-15 6 4-14 15z" fill="#E07A95"/><path d="M64 37l16-15 4 5-16 15z" fill="#E07A95"/><circle cx="26" cy="66" r="3" fill="#F2994A"/>',
+  suitcase:'<rect x="35" y="7" width="30" height="12" rx="6" fill="none" stroke="#12332F" stroke-width="5"/><rect x="24" y="16" width="52" height="52" rx="9" fill="#3E7CB1"/><rect x="24" y="16" width="52" height="10" rx="5" fill="#5B97C9"/><path d="M38 30v30M50 30v30M62 30v30" stroke="#2F6493" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="71" r="4" fill="#12332F"/><circle cx="68" cy="71" r="4" fill="#12332F"/>',
+  projector:'<path d="M58 40L98 16v52z" fill="#F7E3A8" opacity=".8"/><rect x="10" y="30" width="54" height="30" rx="8" fill="#FFFDF8" stroke="#12332F" stroke-width="3"/><circle cx="50" cy="45" r="9" fill="#12332F"/><circle cx="50" cy="45" r="4" fill="#5B97C9"/><rect x="18" y="38" width="16" height="3" rx="1.5" fill="#C9D1CF"/><rect x="18" y="45" width="11" height="3" rx="1.5" fill="#C9D1CF"/><rect x="17" y="60" width="6" height="8" fill="#12332F"/><rect x="51" y="60" width="6" height="8" fill="#12332F"/>',
+  camera:'<rect x="30" y="15" width="20" height="11" rx="3" fill="#2B2F3A"/><rect x="16" y="24" width="68" height="42" rx="8" fill="#2B2F3A"/><rect x="16" y="24" width="68" height="7" rx="3.5" fill="#3B404D"/><circle cx="52" cy="46" r="16" fill="#12332F" stroke="#C9D1CF" stroke-width="4"/><circle cx="52" cy="46" r="7" fill="#3E7CB1"/><circle cx="49" cy="43" r="2.5" fill="#fff" opacity=".7"/><rect x="68" y="30" width="9" height="5" rx="2" fill="#F2994A"/>',
+  gamepad:'<path d="M24 28h52a16 16 0 0 1 16 16v6a12 12 0 0 1-21 7l-6-6H35l-6 6A12 12 0 0 1 8 50v-6a16 16 0 0 1 16-16z" fill="#2B2F3A"/><path d="M27 38v14M20 45h14" stroke="#C9D1CF" stroke-width="4" stroke-linecap="round"/><circle cx="68" cy="39" r="4" fill="#F2994A"/><circle cx="76" cy="46" r="4" fill="#5DBB8A"/><circle cx="60" cy="46" r="4" fill="#5B97C9"/><circle cx="68" cy="53" r="4" fill="#E07A95"/>',
+  ring:'<path d="M50 52v16M36 72l14-8 14 8" stroke="#43524E" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="30" r="26" fill="#FFF3C4"/><circle cx="50" cy="30" r="19" fill="none" stroke="#F2C94C" stroke-width="7"/><rect x="44" y="20" width="12" height="21" rx="3" fill="#2B2F3A"/>',
+  tent:'<path d="M10 68L50 12l40 56z" fill="#3F8F5B"/><path d="M50 12l40 56H66z" fill="#2F7048"/><path d="M50 30L38 68h24z" fill="#12332F"/><path d="M50 12V5" stroke="#43524E" stroke-width="3" stroke-linecap="round"/><path d="M50 5l9 3-9 3z" fill="#F2994A"/>',
+  ladder:'<path d="M35 8L23 70M57 8l13 62" stroke="#9AA6A3" stroke-width="6" stroke-linecap="round"/><path d="M32 22h28M29 36h33M26 50h38M24 64h44" stroke="#C9D1CF" stroke-width="5" stroke-linecap="round"/><rect x="33" y="4" width="26" height="8" rx="3" fill="#F2994A"/>',
+  calc:'<rect x="28" y="6" width="44" height="64" rx="8" fill="#2B2F3A"/><rect x="34" y="12" width="32" height="14" rx="3" fill="#BFE3C9"/><rect x="47" y="17" width="16" height="4" rx="1" fill="#2E7A5E"/>'+[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${34+c*11}" y="${32+r*9}" width="9" height="6" rx="2" fill="${r===3&&c===2?'#F2994A':'#4A5060'}"/>`).join('')).join(''),
+  iron:'<path d="M36 14c0-4 4-4 4-8M50 14c0-4 4-4 4-8M64 14c0-4 4-4 4-8" stroke="#9AA6A3" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="40" y="38" width="20" height="32" rx="7" fill="#3E7CB1"/><rect x="43" y="46" width="14" height="14" rx="3" fill="#9CC3E6"/><path d="M30 18h40a6 6 0 0 1 6 6v8a6 6 0 0 1-6 6H30a6 6 0 0 1-6-6v-8a6 6 0 0 1 6-6z" fill="#FFFDF8" stroke="#12332F" stroke-width="3"/>',
+  racket:'<g transform="rotate(-22 38 40)"><ellipse cx="38" cy="28" rx="15" ry="19" fill="#FBE3E0" stroke="#C2412D" stroke-width="5"/><path d="M38 47v24" stroke="#12332F" stroke-width="6" stroke-linecap="round"/></g><g transform="rotate(22 62 40)"><ellipse cx="62" cy="28" rx="15" ry="19" fill="#DCE8F7" stroke="#3E7CB1" stroke-width="5"/><path d="M62 47v24" stroke="#12332F" stroke-width="6" stroke-linecap="round"/></g><circle cx="50" cy="64" r="7" fill="#D9E35A"/><path d="M44 62c4 2 8 2 12-1" stroke="#fff" stroke-width="1.5" fill="none"/>',
+  speaker:'<rect x="30" y="12" width="40" height="58" rx="10" fill="#2B2F3A"/><rect x="30" y="12" width="40" height="7" rx="3.5" fill="#3B404D"/><circle cx="50" cy="50" r="13" fill="#12332F" stroke="#5B6070" stroke-width="3"/><circle cx="50" cy="50" r="5" fill="#F2994A"/><circle cx="50" cy="28" r="6" fill="#12332F" stroke="#5B6070" stroke-width="2"/>',
+  mixer:'<path d="M20 68h60" stroke="#12332F" stroke-width="5" stroke-linecap="round"/><rect x="24" y="14" width="15" height="52" rx="6" fill="#C2412D"/><path d="M24 14h40a10 10 0 0 1 10 10v5a4 4 0 0 1-4 4H24z" fill="#C2412D"/><rect x="24" y="14" width="50" height="6" rx="3" fill="#D95A47"/><path d="M58 33v10" stroke="#43524E" stroke-width="3"/><path d="M44 42h30l-4 22H48z" fill="#D7DEDC"/><path d="M44 42h30" stroke="#F1F4F3" stroke-width="3"/>'
+};
+const ART = n => ILL[n] ? `<svg class="art" viewBox="0 0 100 80" aria-hidden="true">${SH}${ILL[n]}</svg>` : `<svg class="it" viewBox="0 0 24 24" aria-hidden="true">${T[n]||T.box}</svg>`;
+const I = (n,c='') => `<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+const IT = (n,sw=1.5) => `<svg class="it" viewBox="0 0 24 24" style="stroke-width:${sw}" aria-hidden="true">${T[n]||T.box}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tl = n => Math.round(n).toLocaleString('tr-TR')+' ₺';
+
+const LOCKERS = [
+  {id:'L1',name:'Çamlık Market Önü',dist:'300 m',walk:4,addr:'Gül Sokak No 12, market girişinin sağı',x:52,y:56,host:'Çamlık Market'},
+  {id:'L2',name:'Kampüs Kapısı',dist:'650 m',walk:8,addr:'Üniversite ana giriş, güvenlik kulübesi yanı',x:80,y:22,host:'Üniversite'},
+  {id:'L3',name:'Yurt Girişi',dist:'900 m',walk:11,addr:'Lale Yurdu bahçe kapısı',x:22,y:30,host:'Lale Yurdu'},
+  {id:'L4',name:'Metro Çıkışı',dist:'1,2 km',walk:15,addr:'Çamlık metro, B çıkışı',x:84,y:80,host:'Belediye'}
+];
+const PEOPLE = {
+  murat:{n:'Murat B.',t:'Komşu',r:4.8,c:31,bg:'#CFE3D8'},
+  defne:{n:'Defne Y.',t:'Öğrenci',r:4.9,c:18,bg:'#FCE6D3'},
+  ayse:{n:'Ayşe H.',t:'Komşu',r:4.7,c:12,bg:'#E7DDF5'},
+  mert:{n:'Mert A.',t:'Öğrenci',r:4.6,c:9,bg:'#DCE8F7'},
+  can:{n:'Can T.',t:'Öğrenci',r:4.8,c:22,bg:'#F7E3A8'},
+  ece:{n:'Ece K.',t:'Öğrenci',r:4.9,c:14,bg:'#F9D9DF'},
+  nazli:{n:'Nazlı S.',t:'Öğrenci',r:4.8,c:7,bg:'#FCE6D3'},
+  burak:{n:'Burak E.',t:'Öğrenci',r:4.7,c:5,bg:'#DCE8F7'},
+  yildiz:{n:'Yıldız Hırdavat',t:'Esnaf',r:4.9,c:54,bg:'#F7E3A8'},
+  nokta:{n:'Nokta Kırtasiye',t:'Esnaf',r:4.8,c:40,bg:'#CFE3D8'},
+  serkan:{n:'Serkan Ö.',t:'Komşu',r:3.4,c:14,bg:'#E7DDF5'},
+  tolga:{n:'Tolga B.',t:'Öğrenci',r:2.9,c:3,bg:'#DCE8F7'},
+  emre:{n:'Emre K.',t:'Öğrenci',r:5.0,c:0,bg:'#F2994A'}
+};
+const CATS = ['Tümü','Alet','Bakım','Seyahat','Elektronik','Etkinlik','Kamp','Okul','Spor','Mutfak'];
+const CATICON = {Alet:'drill',Bakım:'curler',Seyahat:'suitcase',Elektronik:'camera',Etkinlik:'projector',Kamp:'tent',Okul:'calc',Spor:'racket',Mutfak:'mixer'};
+const TILE = {Alet:'#CFE3D8',Bakım:'#FCE6D3',Seyahat:'#DCE8F7',Elektronik:'#E7DDF5',Etkinlik:'#F7E3A8',Kamp:'#D8EBC9',Okul:'#F9D9DF',Spor:'#DCE8F7',Mutfak:'#FCE6D3'};
+const ITEMS = [
+  {id:'matkap',n:'Darbeli matkap + uç seti',c:'Alet',ic:'drill',d:150,h:40,dep:800,buy:2150,l:'L1',s:'B3',o:'murat',av:true,desc:'600 W darbeli matkap. Ahşap, metal ve beton için 12 parçalı uç seti ve dübel kutusu dahil. Raf, perde ve tablo asmak için ideal.',rules:['Uçlar kutusunda iade edilir','Beton delerken darbe modunu kullan','Her iadeden sonra şarjı kontrol edilir'],rv:[['Selin A.',5,'Raf takmak için aldım, uç seti tam. Dolaptan almak çok pratikti.'],['Kaan D.',5,'Gece 22.00’de lazımdı, 5 dakikada elimdeydi.'],['Merve T.',4,'Gayet iyi, sadece biraz ağır.']]},
+  {id:'masa',n:'Saç maşası (32 mm)',c:'Bakım',ic:'curler',d:100,h:30,dep:400,buy:1500,l:'L3',s:'A2',o:'defne',av:true,desc:'Seramik kaplama, 5 ısı ayarı, 60 dakikada otomatik kapanma. Isıya dayanıklı taşıma kılıfıyla birlikte.',rules:['Her iadeden sonra dezenfekte edilir','Soğuduktan sonra kılıfına koy','Kablo dolanmadan iade edilir'],rv:[['Selin A.',5,'Düğün öncesi tam kurtarıcı oldu, tertemizdi.'],['İrem K.',5,'Defne çok özenli, kılıfı bile var.']]},
+  {id:'bavul',n:'Büyük boy bavul (75 cm)',c:'Seyahat',ic:'suitcase',d:90,h:0,dep:600,buy:2800,l:'L3',s:'C1',o:'ayse',av:true,desc:'4 tekerlekli, şifreli kilitli, 90 litre. Bayram ve yaz dönüşleri için.',rules:['En az 1 günlük kiralanır','İçi boş ve temiz iade edilir'],rv:[['Burak E.',5,'Bayramda memlekete gidip geldim, sorunsuz.'],['Mert A.',4,'Sorunsuz, sadece dolap bana biraz uzaktı.']]},
+  {id:'proj',n:'Mini projeksiyon + perde',c:'Etkinlik',ic:'projector',d:180,h:50,dep:1200,buy:4500,l:'L2',s:'B1',o:'mert',av:true,desc:'1080p destekli mini projeksiyon, HDMI ve telefon bağlantısı, 100 inç katlanır perde. Film geceleri ve kulüp etkinlikleri için.',rules:['Lens kapağı takılı iade edilir','Perde katlanarak çantasına konur'],rv:[['Ece K.',4,'Kulüp gösterimimizde kullandık, görüntü iyi.'],['Can T.',3,'Görüntü iyi ama kumandanın pili bitmişti.']]},
+  {id:'kamera',n:'Fotoğraf makinesi + 50 mm lens',c:'Elektronik',ic:'camera',d:250,h:70,dep:2500,buy:22000,l:'L3',s:'B2',o:'defne',av:true,desc:'Aynasız fotoğraf makinesi, 50 mm f/1.8 lens, 64 GB kart ve yedek batarya. Proje çekimleri ve mezuniyet fotoğrafları için.',rules:['Kartındaki fotoğrafları iade öncesi sil','Lens kapağı takılı iade edilir'],rv:[['Can T.',5,'Mezuniyet fotoğraflarımızı çektik, harika.']]},
+  {id:'konsol',n:'Oyun konsolu + 2 kol',c:'Etkinlik',ic:'gamepad',d:200,h:60,dep:2000,buy:20000,l:'L2',s:'C2',o:'can',av:false,until:'yarın 18.00',desc:'2 kol ve 3 oyun dahil. Hafta sonu turnuvaları için.',rules:['Kollar şarjlı iade edilir'],rv:[['Mert A.',5,'Hafta sonu turnuvası yaptık, çok eğlendik.']]},
+  {id:'ring',n:'Ring light + tripod',c:'Elektronik',ic:'ring',d:70,h:20,dep:400,buy:1200,l:'L2',s:'A3',o:'ece',av:true,desc:'26 cm ışık halkası, 3 renk tonu, telefon tutucu ve 160 cm tripod.',rules:['Tripod katlanarak iade edilir'],rv:[]},
+  {id:'cadir',n:'3 kişilik kamp çadırı',c:'Kamp',ic:'tent',d:160,h:0,dep:1000,buy:3500,l:'L1',s:'C3',o:'murat',av:true,desc:'Su geçirmez, kolay kurulum, kazıklar ve çantası dahil.',rules:['Kuru ve temiz iade edilir','En az 1 günlük kiralanır'],rv:[['Kaan D.',5,'Hafta sonu kampı için mükemmeldi.'],['Selin A.',4,'Kurulumu ilk seferde biraz uğraştırdı.']]},
+  {id:'merdiven',n:'Katlanır merdiven (5 basamak)',c:'Alet',ic:'ladder',d:60,h:20,dep:300,buy:1900,l:'L1',s:'C4',o:'yildiz',av:true,desc:'Alüminyum, 150 kg taşıma kapasiteli.',rules:['Kilit pimi takılı iade edilir'],rv:[]},
+  {id:'hesap',n:'Bilimsel hesap makinesi',c:'Okul',ic:'calc',d:30,h:10,dep:300,buy:900,l:'L2',s:'A1',o:'nokta',av:true,desc:'Sınavlarda izin verilen model, yedek pil dahil.',rules:['Kapağı takılı iade edilir'],rv:[['Zehra N.',5,'Final haftası kurtardı.'],['Can T.',4,'İş gördü, tuşları biraz sert.']]},
+  {id:'duz',n:'Saç düzleştirici',c:'Bakım',ic:'straight',d:90,h:25,dep:400,buy:1300,l:'L1',s:'A2',o:'nazli',av:true,desc:'Titanyum plakalar, hızlı ısınma, ısıya dayanıklı kılıf.',rules:['Her iadeden sonra dezenfekte edilir'],rv:[]},
+  {id:'utu',n:'Buharlı kıyafet ütüsü',c:'Bakım',ic:'iron',d:70,h:20,dep:300,buy:1600,l:'L4',s:'A1',o:'ayse',av:true,desc:'Dikey buharlı ütü, mülakat ve mezuniyet öncesi hızlı ütü için.',rules:['Su haznesi boş iade edilir'],rv:[]},
+  {id:'raket',n:'Tenis raketi (2 adet) + top',c:'Spor',ic:'racket',d:80,h:25,dep:500,buy:2400,l:'L4',s:'B1',o:'burak',av:true,desc:'2 raket ve 3 top. Kampüs kortunda bir maç için.',rules:['Toplar kutusunda iade edilir'],rv:[]},
+  {id:'vidala',n:'Akülü vidalama seti',c:'Alet',ic:'drill',d:90,h:25,dep:600,buy:2600,l:'L4',s:'C1',o:'serkan',av:true,desc:'18 V akülü vidalama, 2 batarya ve 24 parçalı uç seti. Mobilya kurulumu için.',rules:['Uçlar kutusunda iade edilir','Bataryalar şarjlı iade edilir'],rv:[['Burak E.',2,'Uç seti eksik çıktı, iki uç yoktu.'],['Merve T.',3,'İşimi gördü ama biraz kirliydi.'],['Kaan D.',5,'Sorunsuzdu, hızlıca aldım.']]},
+  {id:'bavul2',n:'Orta boy bavul (65 cm)',c:'Seyahat',ic:'suitcase',d:60,h:0,dep:400,buy:1800,l:'L4',s:'C3',o:'tolga',av:true,desc:'2 tekerlekli, 60 litre. Hafta sonu kaçamakları için.',rules:['En az 1 günlük kiralanır','İçi boş ve temiz iade edilir'],rv:[['Zehra N.',2,'Fotoğraftakinden daha yıpranmış çıktı.'],['Ece K.',3,'Tekerleklerden biri takılıyor.'],['Can T.',4,'Bir hafta sonu için yeterliydi.']]},
+  {id:'hoparlor',n:'Taşınabilir Bluetooth hoparlör',c:'Etkinlik',ic:'speaker',d:60,h:20,dep:500,buy:2500,l:'L2',s:'B2',o:'emre',av:false,until:'yarın 20.00',desc:'Su geçirmez, 12 saat pil, şarj kablosuyla birlikte. Kampüs pikniği ve doğum günleri için.',rules:['Şarjlı iade edilir','Kablosu kutusunda iade edilir'],rv:[['Kaan D.',5,'Pikniğimizi kurtardı, sesi çok iyi.']]},
+  {id:'mikser',n:'Stand mikser',c:'Mutfak',ic:'mixer',d:110,h:30,dep:700,buy:5000,l:'L1',s:'B4',o:'ayse',av:true,desc:'5 litre hazne, 3 aparat. Doğum günü pastası için.',rules:['Temiz ve kuru iade edilir'],rv:[]}
+];
+const SLOTS = ['A1','A2','A3','A4','B1','B2','B3','B4','C1','C2','C3','C4'];
+const BUSY = {L1:['A1','B1'],L2:['A4','B3','C1'],L3:['A1','A4','B4'],L4:['A3','B4','C2']};
+
+const fresh = () => ({onb:false,rentals:[],listings:[],favs:[],read:[],notifs:[
+  {id:'n1',ic:'gift',bg:'#FCE6D3',t:'Hoş geldin!',p:'İlk kiralamanda hasar güvencesi bizden.',w:'Bugün'},
+  {id:'n2',ic:'curler',it:1,bg:'#FCE6D3',t:'Defne’nin saç maşası müsait',p:'Yurt Girişi dolabı · A2 bölmesi',w:'1 saat önce'},
+  {id:'n3',ic:'users',bg:'#CFE3D8',t:'Mahallende 3 yeni eşya',p:'Kamp çadırı, ring light ve stand mikser eklendi.',w:'Dün'}
+],vote:null,voteItems:[],seq:1,as:'emre',chats:{},watch:[],freed:[],paused:[],earn:[120,180,90,240,300,420],hostLog:[],bal:248,tx:[{t:'Hoparlör kirası · Kaan D.',a:48,w:'Dün',k:'earn'},{t:'Bakiye yükleme · Demo kart',a:200,w:'20 Kasım',k:'top'}]});
+let S = fresh();
+try{const s=JSON.parse(localStorage.getItem('kirakutu-v1')||'null');if(s&&s.rentals&&!s.v3)S=Object.assign(fresh(),{rentals:s.rentals,favs:s.favs||[],onb:s.onb});else if(s&&s.rentals)S=Object.assign(fresh(),s);}catch(e){}
+S.as='emre'; S.v3=true;
+const save = () => {try{localStorage.setItem('kirakutu-v1',JSON.stringify(S));}catch(e){}};
+let stack = [{s:'home'}];
+let ui = {cat:'Tümü',q:'',rtab:'act',sort:'oner',onlyAv:false,side:'rent',topup:200};
+let chatCtx = null, typing = false;
+let book = null, wiz = null, unlock = null, rate = null, photosTmp = [];
+
+const view = document.getElementById('view');
+const app = document.getElementById('app');
+const allItems = () => ITEMS.concat(S.listings.filter(x=>x.live)).filter(x=>!S.paused.includes(x.id)||x.o===S.as);
+const isAv = it => !!it && (it.av || S.freed.includes(it.id));
+const me = () => PEOPLE[S.as]||PEOPLE.emre;
+const ME = {emre:{full:'Emre K.',sub:'YBS 2. sınıf · Çamlık Mahallesi'},defne:{full:'Defne Y.',sub:'İşletme 3. sınıf · Lale Yurdu'}};
+const item = id => allItems().find(x=>x.id===id);
+const locker = id => LOCKERS.find(x=>x.id===id);
+const cur = () => stack[stack.length-1];
+const ROOT = new Set(['home','rentals','notifs','profile']);
+const activeRentals = () => S.rentals.filter(r=>r.st!=='done');
+/* Geç iade: ilk 30 dk ücretsiz, sonra başlayan her saat için saatlik ücret; en fazla 1 günlük kira */
+const GRACE = 30*60e3;
+const isLate = r => r.st==='act' && r.end && Date.now() > r.end;
+const lateUnit = it => it.h || Math.max(10, Math.round(it.d/6/5)*5);
+const feeAt = (end,unit,cap,now=Date.now()) => {const o=now-end-GRACE; return o<=0?0:Math.min(cap, Math.ceil(o/36e5)*unit);};
+const lateFee = r => {const it=item(r.item); return feeAt(r.end,lateUnit(it),it.d);};
+const fDay = d => new Date(d).toLocaleString('tr-TR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const fHour = d => new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+const planned = r => r.st==='res' && r.sched && Date.now() < r.sched;
+const freeCancel = r => r.sched && Date.now() < r.sched - 2*36e5;
+let help = null, failNext = false;
+
+function render(dir){
+  const c = cur();
+  const prevScr = view.querySelector('.scr');
+  const keep = dir==='same' && prevScr ? prevScr.scrollTop : 0;
+  view.innerHTML = SCR[c.s](c) + (ROOT.has(c.s)?tabbar(c.s):'');
+  const scr = view.querySelector('.scr');
+  if(scr){ scr.scrollTop = c.s==='chat' ? scr.scrollHeight : keep; if(dir==='fwd') scr.classList.add('in-fwd'); if(dir==='back') scr.classList.add('in-back'); }
+  tick(); save();
+}
+const go = (s,p={}) => {stack.push({s,...p});render('fwd');};
+const back = () => {if(stack.length>1){stack.pop();render('back');}else{tab('home');}};
+const tab = s => {stack=[{s}];render('tab');};
+const replace = (s,p={}) => {stack[stack.length-1]={s,...p};render('fwd');};
+
+function tabbar(a){
+  const n = S.notifs.filter(x=>!S.read.includes(x.id)).length;
+  const r = activeRentals().length;
+  const b = (s,ic,lb,extra='') => `<button type="button" data-a="tab" data-s="${s}" class="${a===s?'on':''}" aria-label="${lb}">${I(ic)}<span>${lb}</span>${extra}</button>`;
+  return `<nav class="tabs">${b('home','home','Keşfet')}${b('rentals','list','Kiralarım',r?`<span class="cnt">${r}</span>`:'')}<button type="button" data-a="wiz" aria-label="Kiraya ver"><span class="plus">${I('plus')}</span></button>${b('notifs','bell','Bildirimler',n?`<span class="cnt">${n}</span>`:'')}${b('profile','user','Profil')}</nav>`;
+}
+const hd = (t,right='') => `<div class="hd"><button type="button" class="ib" data-a="back" aria-label="Geri">${I('back')}</button><h1>${t}</h1>${right}</div>`;
+const tileOf = it => TILE[it.c]||'#E4EEE9';
+const owner = it => PEOPLE[it.o]||PEOPLE.emre;
+const stars = r => `<span class="star">${I('star')}${r.toFixed(1).replace('.',',')}</span>`;
+
+function itemCard(it){
+  const L = locker(it.l);
+  const mine = it.o===S.as;
+  return `<button type="button" class="card" data-a="item" data-id="${it.id}">
+    <div class="tile" style="background:${tileOf(it)}">${ART(it.ic)}${!isAv(it)?`<span class="badge busy">Kirada</span>`:mine?`<span class="badge new">Senin ilanın</span>`:''}</div>
+    <div class="bd"><span class="nm">${esc(it.n)}</span><span class="pr">${tl(it.d)} <span>/ gün</span></span><span class="mt">${I('pin','s')}${L.dist} · ${stars(owner(it).r)}</span></div></button>`;
+}
+function filtered(){
+  const q = ui.q.trim().toLocaleLowerCase('tr-TR');
+  let l = allItems().filter(it=>(ui.cat==='Tümü'||it.c===ui.cat)&&(!q||(it.n+' '+it.c).toLocaleLowerCase('tr-TR').includes(q))&&(!ui.onlyAv||isAv(it)));
+  const w = it => locker(it.l).walk;
+  if(ui.sort==='yakin') l.sort((a,b)=>w(a)-w(b));
+  if(ui.sort==='ucuz') l.sort((a,b)=>a.d-b.d);
+  if(ui.sort==='pahali') l.sort((a,b)=>b.d-a.d);
+  if(ui.sort==='puan') l.sort((a,b)=>owner(b).r-owner(a).r);
+  return l;
+}
+function gridHTML(){
+  const list = filtered();
+  if(!list.length) return `<div class="empty"><div class="ei">${I('search','l')}</div><b>Bu aramada eşya yok</b>Başka bir kelime dene ya da bu eşyayı ilk sen kiraya ver.<div style="margin-top:14px"><button type="button" class="btn dk" data-a="wiz" style="display:inline-flex;flex:none">${I('plus')}Kiraya ver</button></div></div>`;
+  return `<div class="grid">${list.map(itemCard).join('')}</div>`;
+}
+function mapSVG(){
+  return `<svg viewBox="0 0 358 190" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="358" height="190" fill="#E4EEE9"/>
+    <rect x="10" y="10" width="120" height="70" rx="14" fill="#BFD8C8"/><circle cx="40" cy="40" r="13" fill="#A9CBB6"/><circle cx="80" cy="55" r="10" fill="#A9CBB6"/><circle cx="105" cy="30" r="11" fill="#A9CBB6"/>
+    <g fill="#D3E2DA"><rect x="150" y="10" width="90" height="70" rx="8"/><rect x="262" y="10" width="86" height="40" rx="8"/><rect x="10" y="108" width="120" height="34" rx="8"/><rect x="150" y="108" width="90" height="34" rx="8"/><rect x="262" y="72" width="86" height="70" rx="8"/><rect x="10" y="160" width="120" height="30" rx="8"/><rect x="150" y="160" width="90" height="30" rx="8"/></g>
+    <g fill="#FFFDF8"><rect x="0" y="88" width="358" height="14"/><rect x="0" y="148" width="358" height="8"/><rect x="138" y="0" width="14" height="190"/><rect x="248" y="0" width="9" height="190"/><rect x="257" y="58" width="101" height="8"/></g>
+    <path d="M60 190 C 120 150, 200 120, 358 128" stroke="#9CC3E6" stroke-width="6" fill="none" opacity=".5"/>
+    <circle cx="186" cy="106" r="56" fill="#F2994A" fill-opacity=".1" stroke="#F2994A" stroke-dasharray="5 5" stroke-width="1.5"/>
+  </svg>`;
+}
+function rentalBanner(){
+  const a = activeRentals()[0]; if(!a) return '';
+  const it = item(a.item);
+  const txt = planned(a) ? `Planlandı · ${fDay(a.sched)}` : a.st==='res' ? `Rezerve · <span data-cd="${a.pickBy}">--</span> içinde al` : isLate(a) ? `<span style="color:#F7B4AC;font-weight:600">Gecikti · <span data-late="${a.end}">--</span></span>` : `Kirada · <span data-cd="${a.end}">--</span> kaldı`;
+  return `<button type="button" class="active" data-a="rental" data-id="${a.id}"><span class="ti" style="background:${tileOf(it)};color:var(--dk)">${IT(it.ic,1.7)}</span><span><b>${esc(it.n)}</b><small>${txt}</small></span><span class="go">${I('chev')}</span></button>`;
+}
+const SCR = {};
+SCR.home = () => {
+  const un = S.notifs.some(x=>!S.read.includes(x.id));
+  return `<div class="scr">
+    <div class="hd" style="padding-bottom:0"><div class="hello" style="padding:0;flex:1"><small>${I('pin','s')}Çamlık Mahallesi</small><h2>Merhaba Emre,<br>bugün ne lazım?</h2></div><button type="button" class="balchip" data-a="wallet" aria-label="Bakiye ${tl(S.bal)}">${I('wallet','s')}${tl(S.bal)}</button><button type="button" class="ib" data-a="tab" data-s="notifs" aria-label="Bildirimler">${I('bell')}${un?'<span class="dot"></span>':''}</button></div>
+    <label class="srch">${I('search')}<input id="q" type="search" placeholder="Matkap, bavul, saç maşası…" value="${esc(ui.q)}" autocomplete="off" aria-label="Eşya ara"></label>
+    ${rentalBanner()||hostBanner()}
+    <div class="map">${mapSVG()}<span class="me" style="left:52%;top:56%"></span>${LOCKERS.map((L,i)=>{const n=allItems().filter(x=>x.l===L.id&&isAv(x)).length;return `<button type="button" class="pin ${i===0?'near':''}" style="left:${L.x}%;top:${L.y-4}%" data-a="locker" data-id="${L.id}" aria-label="${L.name}, ${n} eşya"><span class="bub">${I('locker','s')}<b>${n}</b></span><span class="tip"></span></button>`;}).join('')}<span class="maplab">${I('nav','s')}4 dolap · en yakını 300 m</span><button type="button" class="mapx" data-a="mapfull" aria-label="Haritayı tam ekran aç"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+    <div class="chips" role="tablist">${CATS.map(c=>`<button type="button" class="chip ${ui.cat===c?'on':''}" data-a="cat" data-c="${c}">${c==='Tümü'?'':`<svg class="it" viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:1.8">${T[CATICON[c]]}</svg>`}${c}</button>`).join('')}</div>
+    <div class="sec"><h3>Yakınındaki dolaplar</h3></div>
+    <div class="hs">${LOCKERS.map(L=>{const n=allItems().filter(x=>x.l===L.id&&isAv(x)).length;return `<button type="button" class="lk" data-a="locker" data-id="${L.id}"><span class="ico">${I('locker','l')}</span><span><b>${L.name}</b><small>${L.dist} · ${L.walk} dk · ${n} eşya</small></span></button>`;}).join('')}</div>
+    <div class="sec"><h3 id="gt">${ui.cat==='Tümü'?'Mahallende kiralık':ui.cat}</h3><span style="display:flex;gap:14px"><button type="button" data-a="clear" ${ui.cat==='Tümü'&&!ui.q&&!ui.onlyAv&&ui.sort==='oner'?'hidden':''}>Temizle</button><button type="button" data-a="sheet" data-v="sort" style="display:flex;align-items:center;gap:4px">${I('sliders','s')}Sırala</button></span></div>
+    <div id="grid">${gridHTML()}</div>
+    <p class="demo">Prototip · eşyalar, kişiler ve fiyatlar örnektir</p>
+  </div>`;
+};
+SCR.locker = c => {
+  const L = locker(c.id);
+  const its = allItems().filter(x=>x.l===L.id);
+  const cells = SLOTS.map(sl=>{
+    const it = its.find(x=>x.s===sl);
+    let cls='c-empty', lab=sl, ic='';
+    if(it){cls=isAv(it)?'c-free':'c-busy'; ic=`<span class="ci">${IT(it.ic,1.8)}</span>`;}
+    else if((BUSY[L.id]||[]).includes(sl)) cls='c-busy';
+    const a = it?`data-a="item" data-id="${it.id}"`:'';
+    return `<button type="button" class="cell ${cls}" ${a} aria-label="${sl}${it?', '+esc(it.n):''}" ${it?'':'tabindex="-1"'}>${ic}${lab}</button>`;
+  }).join('');
+  return `<div class="scr">${hd(L.name,`<button type="button" class="ib" data-a="toast" data-t="Yol tarifi Haritalar uygulamasında açılır (prototip)" aria-label="Yol tarifi">${I('nav')}</button>`)}
+    <div class="pad">
+      <div class="lkr"><div class="top"><span>KiraKutu · ${L.name}</span><span>7/24</span></div>${cells}</div>
+      <div class="legend"><span><i style="background:#2E7A5E"></i>Müsait</span><span><i style="background:#1A3D39"></i>Kirada</span><span><i style="border:1.5px dashed #3E6E67"></i>Boş bölme</span></div>
+      <div class="box"><div class="row">${I('pin')}<div class="grow"><b>${L.addr}</b><small>${L.dist} · yürüyerek ${L.walk} dakika</small></div></div>
+      <div class="row" style="margin-top:12px">${I('clock')}<div class="grow"><b>7/24 açık</b><small>Işıklı, kameralı · ev sahibi: ${L.host}</small></div></div></div>
+      <div class="h4">Bu dolapta (${its.length})</div>
+    </div>
+    ${its.length?`<div class="grid">${its.map(itemCard).join('')}</div>`:`<div class="empty"><b>Bu dolap henüz boş</b>İlk eşyayı sen koy.</div>`}
+  </div>`;
+};
+SCR.item = c => {
+  const it = item(c.id); if(!it) return SCR.home();
+  const L = locker(it.l), o = owner(it), fav = S.favs.includes(it.id);
+  const mine = it.o===S.as;
+  return `<div class="scr" style="padding-bottom:0">
+    <div class="hero" style="background:${tileOf(it)}">${it.photo?`<img src="${it.photo}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:ART(it.ic)}<button type="button" class="ib l" data-a="back" aria-label="Geri">${I('back')}</button><button type="button" class="ib r" data-a="fav" data-id="${it.id}" aria-label="Favorilere ekle" aria-pressed="${fav}" style="color:${fav?'#C2412D':'inherit'}"><svg class="i" viewBox="0 0 24 24" style="fill:${fav?'#C2412D':'none'}">${P.heart}</svg></button></div>
+    <div class="sheetish">
+      <span class="tag">${it.c}</span>
+      <h2 class="tt" style="margin-top:8px">${esc(it.n)}</h2>
+      <div class="sub">${stars(o.r)} <span>${o.c} kiralama</span> · <span>${L.name}</span></div>
+      <div class="prices"><div><small>Günlük</small><b>${tl(it.d)}</b></div><div><small>Saatlik</small><b>${it.h?tl(it.h):'–'}</b></div><div><small>Depozito</small><b>${tl(it.dep)}</b></div></div>
+      <button type="button" class="box row" data-a="locker" data-id="${L.id}" style="width:100%;text-align:left"><span class="lk" style="padding:0;border:0;width:auto;background:none"><span class="ico">${I('locker','l')}</span></span><span class="grow"><b>${L.name} · bölme ${it.s}</b><small>${L.dist} · yürüyerek ${L.walk} dk · 7/24</small></span>${I('chev')}</button>
+      <div class="box row"><span class="av" style="background:${o.bg}">${o.n[0]}</span><div class="grow"><b>${o.n} <span class="tag ${o.t==='Esnaf'?'or':o.t==='Öğrenci'?'gr':''}">${o.t}</span></b><small>${mine?'Bu senin ilanın':`${stars(o.r)} · ${o.c} başarılı kiralama · kimliği doğrulandı`}</small></div>${mine?I('shield'):`<button type="button" class="ib" data-a="chat" data-o="${it.o}" data-id="${it.id}" aria-label="${o.n} ile mesajlaş">${I('chat')}</button>`}</div>
+      ${!mine&&o.r<3.5?`<div class="box row" style="background:#FFF4D6;border-color:#F2C94C;align-items:flex-start">${I('alert')}<div class="grow"><b>Bu kullanıcının puanı ortalamanın altında</b><small style="color:var(--bd)">${o.r<3?'Puanı 3,0’ın altına düştü; 7 gün içinde yükselmezse ilanları yayından kaldırılır.':'Puanı 3,0’ın altına düşerse ilanları yayından kaldırılır.'} Kiralamadan önce yorumları oku.</small></div></div>`:''}
+      <div class="h4">Bu eşya hakkında</div><p class="txt">${esc(it.desc)}</p>
+      <div class="h4">Kurallar</div><ul class="rules">${it.rules.map(r=>`<li>${I('check','s')}${esc(r)}</li>`).join('')}</ul>
+      <div class="box" style="background:var(--mt);border-color:var(--mt2)"><div class="row">${I('shield')}<div class="grow"><b>Depozito sadece bloke edilir</b><small>${tl(it.dep)} kartında tutulur, sağlam iadede aynı gün kalkar. İstersen hasar güvencesi de ekleyebilirsin.</small></div></div></div>
+      <div class="h4">Yorumlar ${it.rv.length?`(${it.rv.length})`:''}</div>
+      ${it.rv.length?`<div class="box" style="margin-top:0">${it.rv.map(r=>`<div class="rev"><div class="row"><span class="av" style="width:32px;height:32px;font-size:13px;background:var(--mt)">${r[0][0]}</span><b class="grow">${r[0]}</b><span class="star">${I('star')}${r[1]}</span></div><p>${esc(r[2])}</p></div>`).join('')}</div>`:`<p class="txt">Henüz yorum yok. İlk kiralayan sen ol.</p>`}
+      <div style="height:20px"></div>
+    </div></div>
+    <div class="cta"><div class="p"><b>${tl(it.d)}</b><small>${isAv(it)?`günlük · depozito ${tl(it.dep)}`:`kirada · ${it.until}`}</small></div>${mine?`<button type="button" class="btn dk" data-a="toast" data-t="Bu senin ilanın; kiralamalar burada görünecek">Senin ilanın</button>`:isAv(it)?`<button type="button" class="btn" data-a="book" data-id="${it.id}">Kirala</button>`:S.watch.includes(it.id)?`<button type="button" class="btn gh" data-a="watch" data-id="${it.id}">${I('bell','s')}Takiptesin · iptal</button>`:`<button type="button" class="btn dk" data-a="watch" data-id="${it.id}">${I('bell','s')}Müsait olunca bildir</button>`}</div>`;
+};
+function price(){
+  const it = item(book.id);
+  const unit = book.mode==='d'?it.d:it.h;
+  const rent = unit*book.qty;
+  const first = !S.rentals.length;
+  const insFee = book.ins ? (first?0:Math.max(10,Math.round(rent*.1))) : 0;
+  return {it,rent,insFee,first,total:rent+insFee};
+}
+function durTxt(){return book.mode==='d'?`${book.qty} gün`:`${book.qty} saat`;}
+function startTs(){
+  const base = new Date(); if(book.start==='aksam'){base.setHours(20,0,0,0);} if(book.start==='sabah'){base.setDate(base.getDate()+1);base.setHours(10,0,0,0);} if(book.start==='tarih'&&book.date){base.setTime(book.date);}
+  return Math.max(Date.now(), base.getTime());
+}
+function endTxt(){
+  const base = new Date(startTs());
+  const e = new Date(base.getTime()+(book.mode==='d'?book.qty*864e5:book.qty*36e5));
+  return e.toLocaleString('tr-TR',{weekday:'long',hour:'2-digit',minute:'2-digit'});
+}
+SCR.book = () => {
+  const {it,rent,insFee,first,total} = price();
+  const L = locker(it.l);
+  return `<div class="scr">${hd('Kiralama')}
+    <div class="pad">
+      <div class="row box" style="margin-top:0"><span class="av" style="border-radius:14px;width:56px;height:56px;background:${tileOf(it)}">${IT(it.ic,1.7).replace('class="it"','class="it" style="width:32px;height:32px"')}</span><div class="grow"><b>${esc(it.n)}</b><small>${L.name} · bölme ${it.s}</small></div></div>
+      <div class="h4">Ne kadar süre?</div>
+      ${it.h?`<div class="seg"><button type="button" data-a="bmode" data-m="h" class="${book.mode==='h'?'on':''}">Saatlik</button><button type="button" data-a="bmode" data-m="d" class="${book.mode==='d'?'on':''}">Günlük</button></div>`:''}
+      <div class="step box"><div><b style="font-size:16px">${durTxt()}</b><small style="display:block;color:var(--mu);font-size:13px">Bitiş: ${endTxt()}</small></div><div class="stp"><button type="button" data-a="bqty" data-v="-1" aria-label="Azalt" ${book.qty<=1?'disabled':''}>${I('minus')}</button><output>${book.qty}</output><button type="button" data-a="bqty" data-v="1" aria-label="Artır" ${book.qty>=(book.mode==='d'?14:12)?'disabled':''}>${I('plus')}</button></div></div>
+      <div class="h4">Ne zaman alacaksın?</div>
+      <div class="chips" style="padding:0">${[['simdi','Hemen'],['aksam','Bu akşam 20.00'],['sabah','Yarın 10.00']].map(([k,v])=>`<button type="button" class="chip ${book.start===k?'on':''}" data-a="bstart" data-v="${k}">${v}</button>`).join('')}<button type="button" class="chip ${book.start==='tarih'?'on':''}" data-a="sheet" data-v="cal">${I('cal','s')}${book.start==='tarih'&&book.date?new Date(book.date).toLocaleString('tr-TR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Tarih seç'}</button></div>
+      ${startTs()>Date.now()+2*36e5?`<p class="txt" style="font-size:13px;color:var(--gr);margin-top:8px;display:flex;gap:6px;align-items:center">${I('check','s')}Alış saatine 2 saat kalana kadar ücretsiz iptal</p>`:''}
+      <div class="box row" style="margin-top:16px">${I('shield')}<div class="grow"><b>Hasar güvencesi ${first?'<span class="tag gr">İlk kiralamada ücretsiz</span>':''}</b><small>Kazara bozulmada depozitondan kesinti yapılmaz.</small></div><button type="button" class="tog ${book.ins?'on':''}" data-a="bins" role="switch" aria-checked="${book.ins}" aria-label="Hasar güvencesi"></button></div>
+      <div class="h4">Özet</div>
+      <div class="box sum" style="margin-top:0"><div><span>Kira (${durTxt()})</span><span>${tl(rent)}</span></div><div><span>Hasar güvencesi</span><span>${book.ins?(insFee?tl(insFee):'Ücretsiz'):'–'}</span></div><div class="tot"><span>Ödenecek</span><span>${tl(total)}</span></div>${book.pay==='bal'&&S.bal>0?`<div style="font-size:14px"><span>Bakiyeden</span><span>−${tl(Math.min(S.bal,total))}</span></div>${S.bal<total?`<div style="font-size:14px"><span>Karttan</span><span>${tl(total-S.bal)}</span></div>`:''}`:''}<div style="color:var(--mu);font-size:13px"><span>Depozito (bloke edilir, iadede kalkar)</span><span>${tl(it.dep)}</span></div></div>
+      <div class="h4">Ödeme</div>
+      <div class="opt"><button type="button" data-a="bpay" data-v="bal" class="${book.pay==='bal'?'on':''}" ${S.bal>0?'':'disabled'}><span class="rd"></span><span class="wl">${I('wallet','s')}</span><span style="flex:1"><b>KiraKutu bakiyesi</b><small>${tl(S.bal)} mevcut${S.bal>0&&S.bal<total?` · kalan ${tl(total-S.bal)} karttan`:''}</small></span></button><button type="button" data-a="bpay" data-v="card" class="${book.pay==='card'?'on':''}"><span class="rd"></span><span class="cc"></span><span style="flex:1"><b>Demo kart •••• 4242</b><small>Prototip: gerçek ödeme alınmaz</small></span></button></div>
+      <p class="txt" style="font-size:13px;color:var(--mu);margin-top:8px">Depozito her zaman kartında bloke edilir; bakiyenden düşülmez.</p>
+      <button type="button" class="chk ${book.agree?'on':''}" data-a="bagree" role="checkbox" aria-checked="${book.agree}"><span class="bx">${book.agree?I('check'):''}</span><span>Kiralama koşullarını ve depozito kurallarını okudum, kabul ediyorum.</span></button>
+    </div></div>
+    <div class="cta"><div class="p"><b>${tl(total)}</b><small>${durTxt()} · ${L.dist}</small></div><button type="button" class="btn" data-a="pay" ${book.agree?'':'disabled'}>${book.agree?(startTs()>Date.now()+30*60e3?'Öde ve tarihi ayır':'Öde ve rezerve et'):'Koşulları onayla'}</button></div>`;
+};
+function code4(){return String(Math.floor(1000+Math.random()*9000));}
+function qrSVG(seed){
+  const n=21; let h=0; for(const ch of String(seed)) h=(h*31+ch.charCodeAt(0))>>>0;
+  const rnd=()=>{h^=h<<13;h>>>=0;h^=h>>17;h^=h<<5;h>>>=0;return h/4294967296;};
+  let r='';
+  const fin=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#12332F"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#12332F"/>`;
+  const inF=(x,y)=>(x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){if(inF(x,y))continue;if(rnd()>.52)r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#12332F"/>`;}
+  return `<svg viewBox="-1 -1 23 23" shape-rendering="crispEdges" role="img" aria-label="Bölme açma kodu QR">${r}${fin(0,0)}${fin(14,0)}${fin(0,14)}</svg>`;
+}
+SCR.code = c => {
+  const r = S.rentals.find(x=>x.id===c.id); const it = item(r.item); const L = locker(it.l);
+  const ret = c.mode==='ret';
+  const cd = ret?r.retCode:r.code;
+  return `<div class="scr">${hd(ret?'İade kodun':'Rezervasyon hazır')}
+    <div class="pad" style="text-align:center">
+      ${ret?'':`<span class="status res">${I('check','s')}Ödeme alındı · ${planned(r)?'tarih ayrıldı':'rezerve edildi'}</span>`}
+      <h2 class="tt" style="margin-top:12px">${L.name}<br>bölme ${it.s}</h2>
+      <p class="sub" style="justify-content:center">${esc(it.n)} · ${L.dist}</p>
+      <div class="codebig" aria-label="Kod ${cd.split('').join(' ')}">${cd.split('').map(d=>`<span>${d}</span>`).join('')}</div>
+      <div class="qrw">${qrSVG(cd+r.id)}</div>
+      ${ret?(isLate(r)?`<div class="timer" style="color:var(--rd)">${I('alert','s')}Süre <span data-late="${r.end}">--</span> önce doldu</div>`:`<div class="timer">${I('clock','s')}İade süresi: <span data-cd="${r.end}">--</span></div>`):planned(r)?`<div class="timer">${I('cal','s')}Alış: ${fDay(r.sched)} – ${fHour(r.pickBy)}</div><p class="txt" style="font-size:13px;margin-top:6px">Kod bu aralıkta çalışır. ${freeCancel(r)?'2 saat öncesine kadar ücretsiz iptal.':''}</p>`:`<div class="timer">${I('clock','s')}<span data-cd="${r.pickBy}">--</span> içinde teslim al</div>`}
+    </div>
+    <div class="pad"><div class="h4">Nasıl açılır?</div><div class="how"><div>Dolabın ekranına 4 haneli kodu gir ya da QR’ı okut.</div><div>${it.s} bölmesi açılınca ${ret?'eşyayı içine koy':'eşyayı al'} ve fotoğrafını çek.</div><div>Kapağı kapat; ${ret?'depozito blokajın aynı gün kalkar':'kiralama süren başlar'}.</div></div></div>
+    </div>
+    <div class="cta"><button type="button" class="btn gh" style="flex:none;width:52px;padding:0" data-a="toast" data-t="Yol tarifi Haritalar uygulamasında açılır (prototip)" aria-label="Yol tarifi">${I('nav')}</button><button type="button" class="btn dk" data-a="arrive" data-id="${r.id}" data-m="${ret?'ret':'pick'}">${I('unlock')}Dolaba vardım, bölmeyi aç</button></div>`;
+};
+SCR.unlock = c => {
+  const r = S.rentals.find(x=>x.id===c.id); const it = item(r.item); const L = locker(it.l);
+  const ret = c.mode==='ret';
+  const u = unlock;
+  const cells = SLOTS.map(sl=>{
+    const hl = sl===it.s;
+    const busy = (BUSY[L.id]||[]).includes(sl)||allItems().some(x=>x.l===L.id&&x.s===sl&&x.id!==it.id);
+    return `<div class="cell ${hl?'c-hl':''} ${hl&&u.open?'open':''} ${!hl?(busy?'c-busy':'c-empty'):''}">${hl?`<span class="inside">${ret&&!u.photo?'':IT(it.ic,1.6)}</span><span class="door"></span>`:''}${hl&&u.open?'':sl}</div>`;
+  }).join('');
+  let body;
+  if(u.fail) body = `<div class="pad"><div class="succ" style="padding:6px 0 4px"><div class="si warn" style="width:64px;height:64px">${I('alert')}</div><h2 style="font-size:22px">${it.s} bölmesi açılmadı</h2><p>Kodun doğrulandı ama kapak açılmadı. Bazen kilit sıkışır; kapağa hafifçe bastırıp tekrar dene.</p></div>
+      <button type="button" class="btn dk full" style="margin-top:14px" data-a="retryopen" data-id="${r.id}" data-m="${c.mode}">${I('refresh')}Tekrar dene${u.tries>1?` (${u.tries}. deneme)`:''}</button>
+      <button type="button" class="btn gh full" style="margin-top:8px" data-a="help" data-id="${r.id}" data-k="noopen" data-from="unlock">${I('chat','s')}Destek uzaktan açsın</button></div>`;
+  else if(!u.open) body = `<div class="succ"><div class="spin" style="margin:6px auto 12px"></div><h2 style="font-size:22px">Kod doğrulanıyor…</h2><p>Dolap ${it.s} bölmesini açıyor.</p></div>`;
+  else if(!u.photo) body = `<div class="pad"><div class="succ" style="padding:6px 0 4px"><h2 style="font-size:22px">${it.s} açıldı!</h2><p>${ret?'Eşyayı bölmeye koy ve içindeyken fotoğrafını çek.':'Eşyayı al, kontrol et ve fotoğrafını çek.'} Fotoğraf, sorun çıkarsa ikimizi de korur.</p></div>
+      <label class="photo" style="margin-top:12px">${I('camera','l')}<b style="color:var(--dk)">${ret?'Bölmedeki eşyanın':'Eşyanın'} fotoğrafını çek</b><small>Telefonunda kamera açılır</small><input type="file" accept="image/*" capture="environment" id="ph" aria-label="Fotoğraf çek"></label>
+      <button type="button" class="btn gh full" style="margin-top:10px" data-a="skipphoto">Örnek fotoğrafla devam et</button>
+      ${ret?'':`<div class="lnkrow"><button type="button" data-a="help" data-id="${r.id}" data-k="empty" data-from="unlock">Bölme boş mu?</button><button type="button" data-a="help" data-id="${r.id}" data-k="broken" data-from="unlock">Eşya bozuk ya da eksik mi?</button></div>`}</div>`;
+  else body = `<div class="pad"><div class="photo done" style="min-height:160px">${u.photo==='demo'?`<div style="background:${tileOf(it)};position:absolute;inset:0;display:grid;place-items:center">${IT(it.ic,1.2).replace('class="it"','class="it" style="width:96px;height:96px"')}</div>`:`<img src="${u.photo}" alt="Çekilen fotoğraf">`}<span class="ok">${I('check','s')}Kaydedildi</span></div>
+      <p class="txt" style="text-align:center;margin-top:12px">Harika. Şimdi bölmenin kapağını kapat.</p>
+      <button type="button" class="btn dk full" style="margin-top:12px" data-a="closedoor" data-id="${r.id}" data-m="${c.mode}">${I('lock')}Kapağı kapattım</button></div>`;
+  return `<div class="scr">${hd(ret?'İade':'Teslim alma')}<div class="pad"><div class="lkr"><div class="top"><span>${L.name}</span><span>${it.s}</span></div>${cells}</div></div>${body}</div>`;
+};
+const sideSeg = () => `<div class="seg" style="margin-bottom:12px"><button type="button" data-a="side" data-v="rent" class="${ui.side!=='lend'?'on':''}">Kiraladıklarım</button><button type="button" data-a="side" data-v="lend" class="${ui.side==='lend'?'on':''}">Kiraya verdiklerim</button></div>`;
+SCR.rentals = () => {
+  if(ui.side==='lend') return `<div class="scr"><div class="hd"><h1 style="font-size:24px">Kiralarım</h1></div><div class="pad">${sideSeg()}</div>${hostBody()}</div>`;
+  const groups = {act:S.rentals.filter(r=>r.st==='act'),res:S.rentals.filter(r=>r.st==='res'),done:S.rentals.filter(r=>r.st==='done')};
+  const tabs = [['act','Kullanımda'],['res','Rezerve'],['done','Geçmiş']];
+  const list = groups[ui.rtab];
+  return `<div class="scr"><div class="hd"><h1 style="font-size:24px">Kiralarım</h1></div>
+    <div class="pad">${sideSeg()}<div class="seg" style="grid-template-columns:repeat(3,1fr);background:none;padding:0;gap:6px">${tabs.map(([k,v])=>`<button type="button" data-a="rtab" data-v="${k}" class="${ui.rtab===k?'on':''}">${v}${groups[k].length?` (${groups[k].length})`:''}</button>`).join('')}</div>
+    <div style="margin-top:14px">${list.length?list.map(r=>{const it=item(r.item);const late=isLate(r);const st=r.st==='act'?(late?`<span class="late-t">Gecikti · <span data-late="${r.end}">--</span></span>`:`<span data-cd="${r.end}">--</span> kaldı`):planned(r)?`${I('cal','s')} ${fDay(r.sched)}`:r.st==='res'?`<span data-cd="${r.pickBy}">--</span> içinde al`:`${new Date(r.doneAt).toLocaleDateString('tr-TR',{day:'numeric',month:'long'})} · ${r.cancelled?'İptal edildi':r.refund?'Sorun bildirildi · iade edildi':tl(r.total)}`;
+      return `<button type="button" class="rc" data-a="rental" data-id="${r.id}"><span class="ti" style="background:${tileOf(it)}">${IT(it.ic,1.6)}</span><span style="flex:1"><b>${esc(it.n)}</b><small>${st}</small>${r.st==='act'?`<div class="prog ${late?'late':''}"><i data-pg="${r.start}|${r.end}" style="width:0%"></i></div>`:''}</span>${I('chev')}</button>`;}).join(''):`<div class="empty"><div class="ei">${I('list','l')}</div><b>${ui.rtab==='done'?'Henüz tamamlanan kiralama yok':'Şu an kiraladığın bir şey yok'}</b>Mahallende neler var, bir bak.<div style="margin-top:14px"><button type="button" class="btn dk" style="display:inline-flex;flex:none" data-a="tab" data-s="home">Keşfet</button></div></div>`}</div>
+    </div></div>`;
+};
+SCR.rental = c => {
+  const r = S.rentals.find(x=>x.id===c.id); if(!r) return SCR.rentals();
+  const it = item(r.item); const L = locker(it.l); const o = owner(it);
+  const f = d => new Date(d).toLocaleString('tr-TR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  let top, actions;
+  let extra='';
+  if(planned(r)){top=`<span class="status res">${I('cal','s')}Planlandı</span><p class="txt" style="margin-top:12px">Alış zamanı</p><div class="plan">${fDay(r.sched)}</div><p class="txt" style="font-size:13px;margin-top:4px">Bölme alış saatinden itibaren 30 dk senin için ayrılır · başlamasına <span data-cd="${r.sched}">--</span></p>`;
+    actions=`<button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="cancelres" data-id="${r.id}">İptal et</button><button type="button" class="btn dk" data-a="showcode" data-id="${r.id}">${I('unlock')}Kodu göster</button>`;
+    extra=`<div class="box row" style="background:var(--mt);border-color:var(--mt2)">${I('shield')}<div class="grow"><b>${freeCancel(r)?'Ücretsiz iptal':'İptal koşulu'}</b><small>${freeCancel(r)?`Alış saatine 2 saat kalana kadar (${fDay(r.sched-2*36e5)}) iptal edersen ödediğin ${tl(r.total)} tamamen iade edilir.`:`Alış saatine 2 saatten az kaldı; şimdi iptal edersen kiranın yarısı (${tl(Math.round(r.rent/2))}) iade edilir.`}</small></div></div>`;}
+  else if(r.st==='res'){top=`<span class="status res">Rezerve</span><p class="txt" style="margin-top:12px">Teslim almak için kalan süre</p><div class="big" data-cd="${r.pickBy}" style="margin-top:4px">--</div>`;actions=`<button type="button" class="btn dk" data-a="showcode" data-id="${r.id}">${I('unlock')}Kodu göster</button>`;}
+  else if(isLate(r)){const it2=item(r.item),u=lateUnit(it2);top=`<span class="status late">${I('alert','s')}Gecikmede</span><p class="txt" style="margin-top:12px">İade süresi doldu</p><div class="big late" data-late="${r.end}" style="margin-top:4px">--</div><p class="txt" style="font-size:13px;margin-top:4px">önce</p>`;
+    actions=`<button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="extend" data-id="${r.id}">${I('plus','s')}Süre uzat</button><button type="button" class="btn" data-a="return" data-id="${r.id}">Hemen iade et</button>`;
+    extra=`<div class="box latebox"><div class="row" style="align-items:flex-start">${I('alert')}<div class="grow"><b>Şu ana kadar gecikme ücreti: <span data-lf="${r.end}|${u}|${it2.d}">–</span></b><small style="color:var(--bd)">İlk 30 dakika ücretsiz. Sonrasında başlayan her saat için ${tl(u)}, en fazla bir günlük kira (${tl(it2.d)}). Gecikme 24 saati geçerse ${tl(it2.dep)} depozito ${o.n}’ye aktarılır ve hesabın askıya alınır.</small></div></div>
+      <div class="row" style="gap:8px;margin-top:12px"><button type="button" class="btn gh" style="flex:1;font-size:14px" data-a="latemsg" data-id="${r.id}">${I('chat','s')}Kiraya verene haber ver</button></div></div>
+      <p class="txt" style="font-size:13px;color:var(--mu);margin-top:8px;text-align:center">İpucu: süreyi uzatırsan gecikme ücreti yerine normal kira ödersin.</p>`;}
+  else if(r.st==='act'){top=`<span class="status act">Kullanımda</span><i data-flip="${r.end}" hidden></i><p class="txt" style="margin-top:12px">İade etmek için kalan süre</p><div class="big" data-cd="${r.end}" style="margin-top:4px">--</div><div class="prog"><i data-pg="${r.start}|${r.end}"></i></div>`;actions=`<button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="extend" data-id="${r.id}">${I('plus','s')}Süre uzat</button><button type="button" class="btn" data-a="return" data-id="${r.id}">İade et</button>`;}
+  else if(r.cancelled||r.refund){top=`<span class="status done">${r.cancelled?'İptal edildi':'Sorun bildirildi'}</span><p class="txt" style="margin-top:12px">${tl(r.refunded||0)} iade edildi${r.ticket?` · talep #${r.ticket}`:''}</p>`;actions=`<button type="button" class="btn dk" data-a="item" data-id="${it.id}">Tekrar kirala</button>`;}
+  else {top=`<span class="status done">Tamamlandı</span><p class="txt" style="margin-top:12px">${r.rating?`Puanın: ${'★'.repeat(r.rating)}`:'Teşekkürler!'}</p>`;actions=`<button type="button" class="btn dk" data-a="item" data-id="${it.id}">Tekrar kirala</button>`;}
+  return `<div class="scr">${hd('Kiralama #'+r.id)}
+    <div class="pad"><div class="box" style="margin-top:0;text-align:center"><div style="width:84px;height:84px;border-radius:24px;background:${tileOf(it)};display:grid;place-items:center;margin:0 auto 10px">${IT(it.ic,1.4).replace('class="it"','class="it" style="width:52px;height:52px"')}</div><b style="font-size:18px;display:block;margin-bottom:8px">${esc(it.n)}</b>${top}</div>
+    <div class="box"><dl class="kv"><dt>Dolap</dt><dd>${L.name} · ${it.s}</dd>${r.start?`<dt>Başlangıç</dt><dd>${f(r.start)}</dd><dt>Bitiş</dt><dd>${f(r.end)}</dd>`:''}${r.sched?`<dt>Planlanan alış</dt><dd>${f(r.sched)}</dd>`:''}<dt>Süre</dt><dd>${r.dur}</dd><dt>Ödenen</dt><dd>${tl(r.total)}${r.fromBal?` · ${tl(r.fromBal)} bakiyeden`:''}</dd>${r.lateFee?`<dt>Gecikme ücreti</dt><dd style="color:var(--rd)">${tl(r.lateFee)}</dd>`:''}${r.disc?`<dt>Sorun indirimi</dt><dd style="color:var(--gr)">−${tl(r.disc)}</dd>`:''}<dt>Depozito</dt><dd>${r.st==='done'?'Kaldırıldı':'Bloke: '+tl(it.dep)}</dd><dt>Kiraya veren</dt><dd>${o.n}</dd></dl></div>
+    ${extra}
+    ${r.st!=='done'?`<button type="button" class="box row" style="width:100%;text-align:left" data-a="help" data-id="${r.id}">${I('alert')}<span class="grow"><b>Bir sorun mu var?</b><small>Eşya bozuk, eksik ya da bölme açılmadı</small></span>${I('chev')}</button>`:''}
+    </div></div>
+    <div class="cta">${actions}</div>`;
+};
+SCR.rate = c => {
+  const r = S.rentals.find(x=>x.id===c.id); const it = item(r.item); const o = owner(it);
+  const tags = ['Tertemizdi','Anlatıldığı gibi','Eksiksiz','Çok pratikti','Tekrar kiralarım'];
+  return `<div class="scr"><div class="succ"><div class="si">${I('check')}</div><h2>İade tamam!</h2><p>${tl(it.dep)} depozito blokajın kaldırıldı.<br>${o.n}’ye ödemesi gönderildi.</p>${r.lateFee?`<p style="margin-top:8px;color:var(--rd);font-weight:500">${tl(r.lateFee)} gecikme ücreti ${r.lateSrc}</p>`:''}</div>
+    <div class="pad"><div class="box" style="text-align:center"><b style="font-size:16px">${o.n} ile kiralaman nasıldı?</b><div class="stars">${[1,2,3,4,5].map(n=>`<button type="button" data-a="star" data-v="${n}" class="${rate.s>=n?'on':''}" aria-label="${n} yıldız"><svg viewBox="0 0 24 24">${P.star}</svg></button>`).join('')}</div>
+    <div class="qt">${tags.map(t=>`<button type="button" class="chip ${rate.t.includes(t)?'on':''}" data-a="rtag" data-v="${t}">${t}</button>`).join('')}</div>
+    <textarea id="rc" rows="3" placeholder="Kısa bir yorum yaz (isteğe bağlı)" style="margin-top:12px" aria-label="Yorum">${esc(rate.c)}</textarea></div>
+    <div class="box row" style="background:var(--dk);color:var(--cr);border:0">${I('leaf','l')}<div class="grow"><b>Yaklaşık ${tl(it.buy-r.total)} tasarruf ettin</b><small style="color:#C9DDD8">Satın almak yerine kiraladın; mahallede bir eşya daha paylaşıldı.</small></div></div>
+    </div><p class="demo">Tasarruf, örnek satın alma fiyatına göre hesaplanır</p></div>
+    <div class="cta"><button type="button" class="btn" data-a="sendrate" data-id="${r.id}" ${rate.s?'':'disabled'}>${rate.s?'Puanı gönder':'Yıldız seç'}</button></div>`;
+};
+SCR.notifs = () => `<div class="scr"><div class="hd"><h1 style="font-size:24px">Bildirimler</h1>${S.notifs.some(x=>!S.read.includes(x.id))?`<button type="button" style="color:var(--ort);font-weight:600;font-size:14px;min-height:44px" data-a="readall">Tümünü okundu yap</button>`:''}</div>
+  ${S.notifs.map(n=>`<button type="button" class="nt ${S.read.includes(n.id)?'':'un'}" data-a="notif" data-id="${n.id}"><span class="ni" style="background:${n.bg}">${n.it?IT(n.ic,1.7).replace('class="it"','class="it" style="width:22px;height:22px"'):I(n.ic)}</span><span style="flex:1"><b>${esc(n.t)}</b><p>${esc(n.p)}</p><small>${n.w}</small></span>${S.read.includes(n.id)?'':'<span style="width:10px;height:10px;border-radius:5px;background:var(--or);margin-top:6px;flex:none"></span>'}</button>`).join('')}</div>`;
+SCR.profile = () => {
+  const done = S.rentals.filter(r=>r.st==='done');
+  const saved = done.reduce((a,r)=>a+Math.max(0,item(r.item).buy-r.total),0);
+  const earned = S.listings.filter(l=>l.live).length*0;
+  const b = (ic,t,on) => `<div class="${on?'':'lock'}"><div class="bi">${I(ic)}</div>${t}</div>`;
+  return `<div class="scr" style="padding-top:0"><div class="prof"><div class="av" ${S.as==='defne'?'style="background:#FCE6D3"':''}>${ME[S.as].full[0]}</div><h2>${ME[S.as].full}</h2><p style="color:#C9DDD8;font-size:14px">${ME[S.as].sub}</p><div class="vf"><span>${I('check')}Telefon</span><span>${I('check')}Kimlik (e-Devlet)</span><span>${I('star')}${S.as==='defne'?'4,9':'5,0'}</span></div></div>
+    <div class="stats"><div><b>${S.rentals.length}</b><small>Kiraladın</small></div><div><b>${tl(saved)}</b><small>Tasarruf</small></div><div><b>${tl(S.earn[S.earn.length-1])}</b><small>Bu ay kazanç</small></div></div>
+    <div class="sec" style="padding-top:4px"><h3>Rozetler</h3></div>
+    <div class="bdg">${b('check','İlk kiralama',S.rentals.length>0)}${b('trophy','İlk iade',done.length>0)}${b('users','Paylaşımcı komşu',true)}${b('leaf','5 kiralama',S.rentals.length>=5)}</div>
+    <div class="sec"><h3>Hesap</h3></div>
+    <div class="menu">
+      <button type="button" data-a="wallet"><span class="mi" style="background:var(--or2);color:var(--ort)">${I('wallet')}</span><span class="grow"><b style="font-weight:600">Cüzdanım</b><small style="display:block;color:var(--mu);font-size:12px">Bakiye ${tl(S.bal)}</small></span>${I('chev')}</button>
+      <button type="button" data-a="lendside"><span class="mi">${I('trophy')}</span><span class="grow"><b style="font-weight:600">Kiraya verdiklerim ve kazancım</b><small style="display:block;color:var(--mu);font-size:12px">Bu ay ${tl(S.earn[S.earn.length-1])}</small></span>${I('chev')}</button>
+      <button type="button" data-a="favs"><span class="mi">${I('heart')}</span><span class="grow">Favorilerim${S.favs.length?` (${S.favs.length})`:''}</span>${I('chev')}</button>
+      <button type="button" data-a="inbox"><span class="mi">${I('chat')}</span><span class="grow">Mesajlar${Object.keys(S.chats).length?` (${Object.keys(S.chats).length})`:''}</span>${I('chev')}</button>
+      <button type="button" data-a="sheet" data-v="invite"><span class="mi">${I('gift')}</span><span class="grow">Arkadaşını davet et</span>${I('chev')}</button>
+      <button type="button" data-a="sheet" data-v="trust"><span class="mi">${I('shield')}</span><span class="grow">Güvenlik ve depozito nasıl işler?</span>${I('chev')}</button>
+      <button type="button" data-a="sheet" data-v="faq"><span class="mi">${I('help')}</span><span class="grow">Sıkça sorulan sorular</span>${I('chev')}</button>
+      <button type="button" data-a="toast" data-t="Gerçek uygulamada kayıtlı kartların burada"><span class="mi">${I('lock')}</span><span class="grow">Kayıtlı kartlar</span>${I('chev')}</button>
+      <button type="button" data-a="sheet" data-v="demo"><span class="mi">${I('list')}</span><span class="grow">Sunum senaryoları</span>${I('chev')}</button>
+      <button type="button" data-a="survey"><span class="mi" style="background:var(--or2);color:var(--ort)">${I('chat')}</span><span class="grow"><b style="font-weight:600">Fikrimizi değerlendir</b></span>${I('chev')}</button>
+    </div><button type="button" class="reset" data-a="reset">Demoyu sıfırla</button><p class="demo" style="padding-top:4px">KiraKutu prototipi · Girişimcilik dersi projesi</p></div>`;
+};
+SCR.wiz = () => {
+  const w = wiz; const st = w.step;
+  const steps = `<div class="wsteps">${[1,2,3,4,5].map(i=>`<i class="${i<=st?'on':''}"></i>`).join('')}</div>`;
+  let body='', ok=true, next='Devam';
+  if(st===1){ ok=!!w.c;
+    body = `<h2 class="tt">Ne kiraya vermek istiyorsun?</h2><p class="sub">Kategori seç; fiyat ve bölme önerisini buna göre yapacağız.</p><div class="cats" style="margin-top:16px">${CATS.slice(1).map(c=>`<button type="button" data-a="wcat" data-v="${c}" class="${w.c===c?'on':''}">${IT(CATICON[c],1.5)}${c}</button>`).join('')}</div>`;}
+  if(st===2){ ok=w.n.trim().length>=3;
+    body = `<h2 class="tt">Fotoğraf ve açıklama</h2><p class="sub">İyi bir fotoğraf kiralanma şansını ikiye katlar.</p>
+      <label class="photo ${w.photos.length?'done':''}" style="margin-top:16px">${w.photos.length?`<img src="${w.photos[0]}" alt="Seçilen fotoğraf"><span class="ok">${I('check','s')}${w.photos.length} fotoğraf</span>`:`${I('image','l')}<b style="color:var(--dk)">Fotoğraf ekle</b><small>Galeriden seç ya da çek</small>`}<input type="file" accept="image/*" multiple id="wph" aria-label="Fotoğraf ekle"></label>
+      ${w.photos.length>1?`<div class="thumbs">${w.photos.slice(1).map(p=>`<img src="${p}" alt="">`).join('')}</div>`:''}
+      <label class="lb" for="wn">Başlık</label><input class="inp" id="wn" maxlength="48" placeholder="Örn. Saç düzleştirici" value="${esc(w.n)}">
+      <label class="lb" for="wd">Açıklama</label><textarea id="wd" rows="3" maxlength="240" placeholder="Durumu, içindekiler, nasıl kullanılır…">${esc(w.d)}</textarea>
+      <label class="lb">Durumu</label><div class="chips" style="padding:0">${['Yeni gibi','İyi','Kullanılmış'].map(v=>`<button type="button" class="chip ${w.cond===v?'on':''}" data-a="wcond" data-v="${v}">${v}</button>`).join('')}</div>`;}
+  if(st===3){
+    const sug = {Alet:[60,160],Bakım:[70,120],Seyahat:[70,120],Elektronik:[70,260],Etkinlik:[150,220],Kamp:[120,180],Okul:[20,50],Spor:[60,100],Mutfak:[80,130]}[w.c]||[50,150];
+    const net = Math.round(w.p*.8);
+    body = `<h2 class="tt">Günlük fiyat</h2><p class="sub">Mahallendeki benzer eşyalar: <b style="color:var(--dk)">${sug[0]}–${sug[1]} ₺ / gün</b></p>
+      <div class="box" style="text-align:center"><div class="big" id="wpv">${tl(w.p)}</div><small style="color:var(--mu)">günlük kira</small>
+      <input type="range" id="wp" min="20" max="500" step="10" value="${w.p}" aria-label="Günlük fiyat" style="--p:${(w.p-20)/480*100}%"></div>
+      <div class="box row">${I('clock')}<div class="grow"><b>Saatlik kiralamaya da aç</b><small>Saatlik fiyat: ${tl(Math.round(w.p/4/5)*5)}</small></div><button type="button" class="tog ${w.hour?'on':''}" data-a="whour" role="switch" aria-checked="${w.hour}" aria-label="Saatlik kiralama"></button></div>
+      <div class="earn"><small>Her kiralamada eline geçen</small><div class="big" id="wnet">${tl(net)}</div><small>KiraKutu komisyonu %20 düşüldü · ayda 4 kiralamayla yaklaşık <b id="wmo" style="color:var(--cr)">${tl(net*4)}</b></small></div>`;}
+  if(st===4){
+    body = `<h2 class="tt">Hangi dolaba bırakacaksın?</h2><p class="sub">Önerilen bölme boyutu: <b style="color:var(--dk)">${w.size==='L'?'Büyük (C sırası)':w.size==='S'?'Küçük (A sırası)':'Orta (B sırası)'}</b></p>
+      <div class="opt" style="margin-top:14px">${LOCKERS.map(L=>`<button type="button" data-a="wlk" data-v="${L.id}" class="${w.l===L.id?'on':''}"><span class="rd"></span><span style="flex:1"><b>${L.name}</b><small>${L.dist} · ${L.walk} dk · ${12-allItems().filter(x=>x.l===L.id).length-(BUSY[L.id]||[]).length} boş bölme</small></span></button>`).join('')}</div>
+      <label class="lb">Ne zaman kiralanabilir?</label><div class="chips" style="padding:0">${['Her gün','Hafta içi','Hafta sonu'].map(v=>`<button type="button" class="chip ${w.days===v?'on':''}" data-a="wdays" data-v="${v}">${v}</button>`).join('')}</div>`;}
+  if(st===5){ next='İlanı yayınla';
+    const L = locker(w.l);
+    body = `<h2 class="tt">Önizleme</h2><p class="sub">Komşuların ilanını böyle görecek.</p>
+      <div class="card" style="margin-top:14px;max-width:220px"><div class="tile" style="background:${TILE[w.c]}">${w.photos[0]?`<img src="${w.photos[0]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:ART(CATICON[w.c])}<span class="badge new">Yeni</span></div><div class="bd"><span class="nm">${esc(w.n)}</span><span class="pr">${tl(w.p)} <span>/ gün</span></span><span class="mt">${I('pin','s')}${L.dist} · ${w.cond}</span></div></div>
+      <div class="box"><dl class="kv"><dt>Kategori</dt><dd>${w.c}</dd><dt>Dolap</dt><dd>${L.name}</dd><dt>Uygunluk</dt><dd>${w.days}</dd><dt>Saatlik</dt><dd>${w.hour?'Açık':'Kapalı'}</dd><dt>Önerilen depozito</dt><dd>${tl(Math.max(200,Math.round(w.p*5/100)*100))}</dd><dt>Eline geçen</dt><dd>${tl(w.p*.8)} / gün</dd></dl></div>
+      <div class="box row" style="background:var(--mt);border-color:var(--mt2)">${I('shield')}<div class="grow"><small style="color:var(--bd)">Eşyan her kiralamada fotoğrafla kayıt altına alınır, depozito ve hasar güvencesiyle korunur.</small></div></div>`;}
+  return `<div class="scr"><div class="hd"><button type="button" class="ib" data-a="${st>1?'wback':'back'}" aria-label="Geri">${I(st>1?'back':'x')}</button><h1>Kiraya ver · ${st}/5</h1></div>${steps}<div class="pad" style="padding-top:12px">${body}</div></div>
+    <div class="cta"><button type="button" class="btn ${st===5?'':'dk'}" data-a="wnext" ${ok?'':'disabled'}>${next}</button></div>`;
+};
+SCR.dropoff = c => {
+  const l = S.listings.find(x=>x.id===c.id); const L = locker(l.l);
+  return `<div class="scr"><div class="succ"><div class="si">${I('check')}</div><h2>İlanın hazır!</h2><p>Eşyanı 24 saat içinde <b>${L.name}</b> dolabına bırakınca yayına girecek.</p></div>
+    <div class="pad" style="text-align:center"><p class="sub" style="justify-content:center;margin-top:14px">Bırakma kodun · bölme ${l.s}</p><div class="codebig">${l.code.split('').map(d=>`<span>${d}</span>`).join('')}</div>
+    <div class="how" style="text-align:left;margin-top:16px"><div>Dolabın ekranına bırakma kodunu gir.</div><div>${l.s} bölmesi açılınca eşyanı koy ve fotoğrafını çek.</div><div>Kapağı kapat; ilanın aynı anda yayına girer.</div></div></div></div>
+    <div class="cta"><button type="button" class="btn dk" data-a="drop" data-id="${l.id}">${I('locker')}Dolaba bıraktım</button></div>`;
+};
+SCR.survey = () => {
+  const v = S.vote;
+  const opts = ['Kesinlikle kullanırdım','Muhtemelen kullanırdım','Kararsızım','Pek sanmıyorum','Kullanmazdım'];
+  const its = ['Bavul','Saç maşası / düzleştirici','Projeksiyon','Fotoğraf makinesi','Oyun konsolu','Matkap','Kamp malzemesi','Hesap makinesi'];
+  if(S.voted) return `<div class="scr">${hd('Fikrimizi değerlendir')}<div class="succ"><div class="si">${I('check')}</div><h2>Teşekkürler!</h2><p>Cevabın: <b>${esc(v)}</b>${S.voteItems.length?`<br>En çok: ${S.voteItems.map(esc).join(', ')}`:''}</p>${FORM_URL?`<p style="margin-top:16px"><a href="${FORM_URL}" target="_blank" rel="noopener" class="btn" style="display:inline-flex;text-decoration:none">3 dakikalık ankete katıl</a></p>`:''}<button type="button" class="btn gh" style="margin-top:16px;display:inline-flex" data-a="revote">Cevabı değiştir</button></div></div>`;
+  return `<div class="scr">${hd('Fikrimizi değerlendir')}<div class="pad"><h2 class="tt">KiraKutu mahallende olsa kullanır mıydın?</h2><p class="sub">Girişimcilik projemiz için tek dakikalık soru.</p>
+    <div class="opt" style="margin-top:14px">${opts.map(o=>`<button type="button" class="${v===o?'on':''}" data-a="vote" data-v="${o}"><span class="rd"></span><b>${o}</b></button>`).join('')}</div>
+    <label class="lb">En çok neyi kiralardın? (birden fazla)</label><div class="qt" style="justify-content:flex-start">${its.map(t=>`<button type="button" class="chip ${S.voteItems.includes(t)?'on':''}" data-a="vitem" data-v="${t}">${t}</button>`).join('')}</div></div></div>
+    <div class="cta"><button type="button" class="btn" data-a="sendvote" ${v?'':'disabled'}>Gönder</button></div>`;
+};
+
+/* ---------- sorun bildirme akışı ---------- */
+const HELPK = {noopen:'Bölme açılmadı',empty:'Bölme boş, eşya yok',broken:'Eşya bozuk ya da eksik',other:'Başka bir şey'};
+SCR.help = () => {
+  const h = help; const r = S.rentals.find(x=>x.id===h.rid); const it = item(r.item); const L = locker(it.l); const o = owner(it);
+  let body='', cta='';
+  if(h.step==='pick'){
+    body = `<h2 class="tt">Ne oldu?</h2><p class="sub">${esc(it.n)} · ${L.name} ${it.s}</p>
+      <div class="opt" style="margin-top:14px">${Object.entries(HELPK).map(([k,v])=>`<button type="button" data-a="hk" data-v="${k}"><span class="rd"></span><span style="flex:1"><b>${v}</b><small>${{noopen:'Kod çalıştı ama kapak açılmadı',empty:'Bölme açıldı ama içinde eşya yok',broken:'Çalışmıyor, parçası eksik ya da hasarlı',other:'Destek ekibine yaz'}[k]}</small></span></button>`).join('')}</div>
+      <div class="box row" style="background:var(--mt);border-color:var(--mt2)">${I('clock')}<div class="grow"><b>Destek 7/24 açık</b><small>Ortalama yanıt süresi 3 dakika. Sorun senden kaynaklı değilse sana hiçbir ücret çıkmaz.</small></div></div>`;
+  }
+  else if(h.step==='noopen'){
+    body = `<h2 class="tt">Bölme açılmadı</h2><p class="sub">Çoğu zaman şunlardan biri işe yarar:</p>
+      <div class="how" style="margin-top:14px"><div>Kapağa avucunla hafifçe bastır, sonra bırak. Kilit bazen sıkışır.</div><div>Dolabın ekranında “Kod doğrulandı” yazdığından emin ol.</div><div>Olmadıysa destek ekibi ${it.s} bölmesini buradan uzaktan açabilir.</div></div>`;
+    cta = `<button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="hrefund">Vazgeç, iade al</button><button type="button" class="btn dk" data-a="hremote">${I('unlock')}Uzaktan aç</button>`;
+  }
+  else if(h.step==='photo'){
+    const empty = h.kind==='empty';
+    body = `<h2 class="tt">${empty?'Bölmenin içini çek':'Sorunu fotoğrafla'}</h2><p class="sub">${empty?'Kapağı kapatmadan bölmenin içini çek. Dolap kamerası kaydıyla birlikte incelenecek.':'Hasarı ya da eksik parçayı gösteren bir fotoğraf yeterli. Bu kayıt seni korur: teslim alırken bildirdiğin için senden kesinti yapılmaz.'}</p>
+      <label class="photo ${h.photo?'done':''}" style="margin-top:14px">${h.photo?(h.photo==='demo'?`<div style="background:${empty?'#E9E4D8':tileOf(it)};position:absolute;inset:0;display:grid;place-items:center">${empty?I('locker','l'):IT(it.ic,1.2).replace('class="it"','class="it" style="width:80px;height:80px;opacity:.6"')}</div>`:`<img src="${h.photo}" alt="Çekilen fotoğraf">`)+`<span class="ok">${I('check','s')}Kaydedildi</span>`:`${I('camera','l')}<b style="color:var(--dk)">Fotoğraf çek</b><small>Telefonunda kamera açılır</small>`}<input type="file" accept="image/*" capture="environment" id="hph" aria-label="Fotoğraf çek"></label>
+      ${h.photo?'':`<button type="button" class="btn gh full" style="margin-top:10px" data-a="hdemo">Örnek fotoğrafla devam et</button>`}
+      ${empty?'':`<label class="lb">Ne sorunu var?</label><div class="qt" style="justify-content:flex-start">${['Çalışmıyor','Parçası eksik','Kırık / hasarlı','Kirli'].map(t=>`<button type="button" class="chip ${h.tags.includes(t)?'on':''}" data-a="htag" data-v="${t}">${t}</button>`).join('')}</div>`}`;
+    cta = `<button type="button" class="btn dk" data-a="hsend" ${h.photo&&(empty||h.tags.length)?'':'disabled'}>Bildir</button>`;
+  }
+  else if(h.step==='broken'){
+    body = `<div class="succ" style="padding-top:0"><div class="si">${I('shield')}</div><h2>Kayıt altına alındı</h2><p>${h.tags.map(esc).join(', ')} · talep #${h.ticket}<br>Teslim alırken bildirdiğin için depozitondan kesinti yapılmaz.</p></div>
+      <div class="h4">Nasıl devam etmek istersin?</div>
+      <div class="opt">
+        <button type="button" data-a="hrefund"><span class="rd"></span><span style="flex:1"><b>Eşyayı bırak, paranı geri al</b><small>${tl(r.total)} iade edilir · bölmeye geri koyman yeterli</small></span></button>
+        <button type="button" data-a="hdisc"><span class="rd"></span><span style="flex:1"><b>Yine de kullanacağım</b><small>Kiranın %30’u (${tl(Math.round(r.rent*.3))}) bakiyene iade edilir</small></span></button>
+      </div>`;
+  }
+  else if(h.step==='other'){
+    body = `<h2 class="tt">Bize anlat</h2><p class="sub">Destek ekibi birkaç dakika içinde Mesajlar’dan sana yazacak.</p><textarea id="hnote" rows="5" style="margin-top:14px" placeholder="Ne oldu? Örn. kapak kapanmıyor, ekran çalışmıyor…" aria-label="Sorunu anlat">${esc(h.note)}</textarea>`;
+    cta = `<button type="button" class="btn dk" data-a="hsend" ${h.note.trim().length>=5?'':'disabled'}>Gönder</button>`;
+  }
+  else if(h.step==='done'){
+    const refund = h.res==='refund', disc = h.res==='disc';
+    body = `<div class="succ" style="padding-top:0"><div class="si">${I('check')}</div><h2>${refund?'Paran iade edildi':disc?'İndirim tanımlandı':'Talebin alındı'}</h2>
+      <p>${refund?`${tl(r.refunded)} ${r.fromBal?'bakiyene ve kartına':'kartına'} iade edildi. ${tl(it.dep)} depozito blokajı da kaldırıldı.`:disc?`${tl(r.disc)} bakiyene eklendi. Kiralaman normal şekilde devam ediyor.`:'Destek ekibi birkaç dakika içinde sana yazacak. Gerekirse süren uzatılır, sana ek ücret çıkmaz.'}</p></div>
+      <div class="box ticket">${I('chat')}<div class="grow"><b>Destek talebi #${h.ticket}</b><small style="display:block;color:var(--mu);font-size:13px">${HELPK[h.kind]} · ${refund&&h.kind!=='noopen'?`Dolap kamerası kaydı ve ${o.n}’nin beyanı inceleniyor. Senin bir şey yapman gerekmiyor.`:'İnceleniyor'}</small></div></div>`;
+    cta = refund?`<button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="hdone">Kiralarım</button><button type="button" class="btn dk" data-a="hsimilar" data-c="${it.c}">Benzer eşya bul</button>`:`<button type="button" class="btn dk" data-a="hdone">Tamam</button>`;
+  }
+  return `<div class="scr">${hd(h.step==='done'?'Destek':'Sorun bildir')}<div class="pad">${body}</div></div>${cta?`<div class="cta">${cta}</div>`:''}`;
+};
+
+/* ---------- v2 screens ---------- */
+function mapTall(){
+  return `<svg viewBox="0 0 358 470" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="358" height="470" fill="#E4EEE9"/>
+    <rect x="12" y="20" width="128" height="160" rx="16" fill="#BFD8C8"/>${[[40,50,14],[95,80,12],[60,130,15],[110,150,10]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#A9CBB6"/>`).join('')}
+    <g fill="#D3E2DA">${[[160,20,80,70],[160,110,80,70],[262,20,84,110],[262,150,84,30],[12,210,128,90],[160,210,80,90],[262,210,84,90],[12,330,128,120],[160,330,80,55],[160,405,80,45],[262,330,84,120]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/>`).join('')}</g>
+    <g fill="#FFFDF8"><rect x="0" y="190" width="358" height="14"/><rect x="0" y="312" width="358" height="12"/><rect x="146" y="0" width="12" height="470"/><rect x="248" y="0" width="10" height="470"/><rect x="248" y="138" width="110" height="8"/><rect x="146" y="392" width="102" height="8"/></g>
+    <path d="M0 420 C 90 380, 180 360, 358 372" stroke="#9CC3E6" stroke-width="9" fill="none" opacity=".55"/>
+    <circle cx="179" cy="252" r="78" fill="#F2994A" fill-opacity=".08" stroke="#F2994A" stroke-dasharray="6 6" stroke-width="1.5"/>
+  </svg>`;
+}
+const TALL = {L1:[54,52],L2:[82,16],L3:[22,30],L4:[80,74]};
+SCR.mapfull = () => `<div class="scr">${hd('Mahalledeki dolaplar')}
+  <div class="mapfull">${mapTall()}<span class="me" style="left:50%;top:54%"></span>${LOCKERS.map((L,i)=>{const n=allItems().filter(x=>x.l===L.id&&isAv(x)).length;const [x,y]=TALL[L.id];return `<button type="button" class="pin ${i===0?'near':''}" style="left:${x}%;top:${y}%" data-a="locker" data-id="${L.id}" aria-label="${L.name}, ${n} eşya"><span class="bub">${I('locker','s')}${L.name.split(' ')[0]} <b>${n}</b></span><span class="tip"></span></button>`;}).join('')}<span class="maplab">${I('nav','s')}Turuncu alan: 5 dk yürüme</span></div>
+  <div class="sec"><h3>Yakından uzağa</h3></div>
+  <div class="hs">${LOCKERS.map(L=>{const n=allItems().filter(x=>x.l===L.id&&isAv(x)).length;return `<button type="button" class="lk" data-a="locker" data-id="${L.id}"><span class="ico">${I('locker','l')}</span><span><b>${L.name}</b><small>${L.dist} · ${L.walk} dk · ${n} eşya</small></span></button>`;}).join('')}</div>
+  <p class="demo">Harita temsilîdir</p></div>`;
+SCR.favs = () => {
+  const l = allItems().filter(x=>S.favs.includes(x.id));
+  return `<div class="scr">${hd('Favorilerim')}${l.length?`<div class="grid" style="margin-top:4px">${l.map(itemCard).join('')}</div>`:`<div class="empty"><div class="ei">${I('heart','l')}</div><b>Henüz favorin yok</b>Bir eşyanın sayfasındaki kalbe dokun, burada toplansın.</div>`}</div>`;
+};
+SCR.inbox = () => {
+  const ks = Object.keys(S.chats);
+  return `<div class="scr">${hd('Mesajlar')}${ks.length?ks.map(k=>{const th=S.chats[k];const o=PEOPLE[th.o];const last=th.m[th.m.length-1];const it=item(th.item);return `<button type="button" class="nt" data-a="chat" data-o="${th.o}" data-id="${th.item}"><span class="av" style="background:${o.bg}">${o.n[0]}</span><span style="flex:1"><b>${o.n}</b><p>${esc(last?last.t:'')}</p><small>${it?esc(it.n):''}</small></span></button>`;}).join(''):`<div class="empty"><div class="ei">${I('chat','l')}</div><b>Mesaj yok</b>Bir eşyanın sayfasından kiraya verene soru sorabilirsin.</div>`}</div>`;
+};
+function chatKey(o,id){return o+'|'+id;}
+SCR.chat = c => {
+  const it = item(c.id); const o = PEOPLE[c.o]; const L = locker(it.l);
+  const th = S.chats[chatKey(c.o,c.id)] || {o:c.o,item:c.id,m:[]};
+  const q = ['Hâlâ müsait mi?','Bu akşam alabilir miyim?','Her şey içinde mi?'].concat(it.c==='Bakım'?['Dezenfekte ediliyor mu?']:['3 gün kiralarsam indirim olur mu?']);
+  return `<div class="scr" style="padding-bottom:0">${hd(`${o.n}`,`<span class="av" style="width:40px;height:40px;background:${o.bg}">${o.n[0]}</span>`)}
+    <button type="button" class="rc" style="margin:0 16px 4px;width:calc(100% - 32px)" data-a="item" data-id="${it.id}"><span class="ti" style="background:${tileOf(it)}">${IT(it.ic,1.6)}</span><span style="flex:1"><b>${esc(it.n)}</b><small>${tl(it.d)} / gün · ${L.name} ${it.s}</small></span>${I('chev')}</button>
+    <p class="demo" style="padding-top:6px">${I('shield','s')} Telefon numaran paylaşılmaz. Ödemeyi uygulama dışına taşıma.</p>
+    <div class="bubs">${th.m.map(m=>`<div class="bb ${m.f==='me'?'mine':''}">${esc(m.t)}<small>${new Date(m.ts).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</small></div>`).join('')}${typing?'<div class="bb typing" aria-label="Yazıyor"><i></i><i></i><i></i></div>':''}</div></div>
+    <div class="quick">${q.map(x=>`<button type="button" class="chip" data-a="qmsg" data-v="${x}">${x}</button>`).join('')}</div>
+    <form class="compose" id="cf"><input id="msg" placeholder="Mesaj yaz…" autocomplete="off" aria-label="Mesaj"><button type="submit" class="send" aria-label="Gönder">${I('send')}</button></form>`;
+};
+function autoReply(text,it){
+  const L = locker(it.l), s = text.toLocaleLowerCase('tr-TR');
+  if(/müsait|alabilir|akşam|bugün/.test(s)) return isAv(it)?`Evet, ${L.name} dolabında ${it.s} bölmesinde duruyor. Uygulamadan kiralayıp hemen alabilirsin.`:`Şu an kirada, ${it.until} müsait olacak. “Haber ver”e basarsan uygulama sana bildirir.`;
+  if(/içinde|dahil|eksik|set/.test(s)) return 'Evet, ilanda yazan her şey içinde. Bırakırken fotoğrafını da çektim, içi rahat olsun.';
+  if(/dezenfekte|temiz|hijyen/.test(s)) return 'Her iadeden sonra dezenfekte ediyorum, kılıfıyla birlikte duruyor.';
+  if(/indirim|fiyat|ucuz|gün kira/.test(s)) return `3 gün ve üzeri kiralarsan günlüğü ${tl(Math.round(it.d*.85/5)*5)} yapabilirim.`;
+  return 'Tabii, yardımcı olayım. Takıldığın bir şey olursa buradan yazman yeterli.';
+}
+function sendMsg(text){
+  text = text.trim(); if(!text||!chatCtx) return;
+  const k = chatKey(chatCtx.o,chatCtx.id);
+  if(!S.chats[k]) S.chats[k]={o:chatCtx.o,item:chatCtx.id,m:[]};
+  S.chats[k].m.push({f:'me',t:text,ts:Date.now()});
+  typing = true; render('same');
+  const ctx = chatCtx;
+  setTimeout(()=>{typing=false;S.chats[k].m.push({f:'them',t:autoReply(text,item(ctx.id)),ts:Date.now()});if(cur().s==='chat'&&chatCtx===ctx)render('same');else{save();toast(`${PEOPLE[ctx.o].n} cevap verdi`,'chat');}},1300);
+}
+function hostItems(){return allItems().concat(ITEMS.filter(x=>S.paused.includes(x.id))).filter((x,i,a)=>x.o==='emre'&&a.indexOf(x)===i);}
+function ensureHost(){
+  if(!S.hostRent||S.hostRent.item!=='hoparlor'){S.hostRent={item:'hoparlor',who:'Kaan D.',end:Date.now()+20*36e5,price:60};}
+  if(!S.notifs.some(n=>n.id==='h2')) S.notifs.push({id:'h2',ic:'speaker',it:1,bg:'#F7E3A8',t:'Hoparlörün kiralandı',p:'Kaan D. · 1 gün · eline 48 ₺ geçecek',w:'Dün'});
+}
+function hostBanner(){
+  ensureHost(); const it = item(S.hostRent.item);
+  return `<button type="button" class="active" data-a="lendside"><span class="ti" style="background:${tileOf(it)};color:var(--dk)">${IT(it.ic,1.7)}</span><span><b>Hoparlörün şu an kirada</b><small>${S.hostRent.who} · <span data-cd="${S.hostRent.end}">--</span> sonra iade</small></span><span class="go">${I('chev')}</span></button>`;
+}
+const MONTHS = ['Haz','Tem','Ağu','Eyl','Eki','Kas'];
+function hostBody(){
+  ensureHost();
+  const e = S.earn, mx = Math.max(...e), cm = e[e.length-1], pm = e[e.length-2];
+  const its = hostItems();
+  const it = item(S.hostRent.item);
+  const pend = S.listings.filter(l=>!l.live&&l.o==='emre');
+  return `<div class="pad">
+      <div class="earn" style="margin-top:0"><small>Kasım kazancın</small><div class="big">${tl(cm)}</div><small>Geçen aya göre <b style="color:#7FD3A4">+%${Math.round((cm-pm)/pm*100)}</b> · KiraKutu komisyonu düşülmüş</small>
+        <div class="bars" role="img" aria-label="Son 6 ay kazanç">${e.map((v,i)=>`<div class="${i===e.length-1?'cur':''}"><b>${Math.round(v)}</b><i style="height:${Math.max(6,v/mx*100)}%"></i>${MONTHS[i]}</div>`).join('')}</div>
+        <button type="button" class="btn full" style="margin-top:14px" data-a="wallet">${I('wallet')}Bakiyende ${tl(S.bal)} · Cüzdana git</button><small style="display:block;text-align:center;margin-top:8px">Her kiralamanın kazancı otomatik bakiyene eklenir</small></div>
+      <div class="stats" style="margin:12px 0 0;transform:none"><div><b>${7+S.hostLog.length}</b><small>Kiraya verdin</small></div><div><b>5,0</b><small>Puanın</small></div><div><b>${its.length}</b><small>İlan</small></div></div>
+      <div class="h4">Şu an kirada</div>
+      <div class="rc" style="margin:0"><span class="ti" style="background:${tileOf(it)}">${IT(it.ic,1.6)}</span><span style="flex:1"><b>${esc(it.n)}</b><small>${S.hostRent.who} · <span data-cd="${S.hostRent.end}">--</span> sonra iade</small><div class="prog"><i style="width:35%"></i></div></span></div>
+      <div class="h4">İlanların</div>
+      ${pend.map(l=>`<button type="button" class="rc" data-a="dropoff" data-id="${l.id}"><span class="ti" style="background:${tileOf(l)}">${l.photo?`<img src="${l.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px">`:IT(l.ic,1.6)}</span><span style="flex:1"><b>${esc(l.n)}</b><small>Dolaba bırakılmayı bekliyor · ${locker(l.l).name} ${l.s}</small></span><span class="status res">Bekliyor</span></button>`).join('')}
+      ${its.map(x=>{const p=S.paused.includes(x.id);return `<div class="rc"><span class="ti" style="background:${tileOf(x)}">${x.photo?`<img src="${x.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:16px">`:IT(x.ic,1.6)}</span><button type="button" style="flex:1;text-align:left" data-a="item" data-id="${x.id}"><b>${esc(x.n)}</b><small>${tl(x.d)} / gün · ${locker(x.l).name} ${x.s}</small><small>${p?'Duraklatıldı':x.id===S.hostRent.item?'Kirada':'Yayında'}</small></button><button type="button" class="tog ${p?'':'on'}" data-a="pause" data-id="${x.id}" role="switch" aria-checked="${!p}" aria-label="${esc(x.n)} yayında"></button></div>`;}).join('')}
+      ${S.hostLog.length?`<div class="h4">Son kiralamalar</div>${S.hostLog.slice(0,4).map(h=>`<div class="nt" style="padding:12px 0"><span class="ni" style="background:var(--gr2);color:var(--gr)">${I('check')}</span><span style="flex:1"><b>${esc(h.n)} kiralandı</b><p>${h.who} · eline ${tl(h.net)}</p><small>${h.w}</small></span></div>`).join('')}`:''}
+      <button type="button" class="btn gh full" style="margin-top:16px" data-a="hostdemo">${I('bell','s')}Demo: yeni kiralama gelsin</button>
+      <button type="button" class="btn dk full" style="margin-top:8px" data-a="wiz">${I('plus','s')}Yeni eşya ekle</button>
+      <p class="demo">Kazanç rakamları örnektir</p>
+    </div>`;
+}
+SCR.wallet = () => {
+  const ic = {earn:['trophy','var(--gr2)','var(--gr)'],top:['plus','var(--or2)','var(--ort)'],rent:['list','var(--mt)','var(--dk)'],out:['send','var(--mt)','var(--dk)'],gift:['gift','var(--or2)','var(--ort)']};
+  return `<div class="scr">${hd('Cüzdanım')}<div class="pad">
+    <div class="earn" style="margin-top:0"><small>KiraKutu bakiyen</small><div class="big">${tl(S.bal)}</div><small>Kiralarken kullan; kiraya verdiğinde kazancın otomatik buraya eklenir.</small>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px"><button type="button" class="btn" style="padding:0 8px;white-space:nowrap" data-a="sheet" data-v="topup">${I('plus','s')}Para yükle</button><button type="button" class="btn gh" style="padding:0 8px;white-space:nowrap" data-a="sheet" data-v="withdraw" ${S.bal>0?'':'disabled'}>${I('send','s')}Bankaya aktar</button></div></div>
+    <div class="box row" style="background:var(--mt);border-color:var(--mt2)">${I('shield')}<div class="grow"><small style="color:var(--bd)">Bakiyen lisanslı ödeme ortağımızda tutulur. Depozitolar bakiyeden değil, kartından bloke edilir.</small></div></div>
+    <div class="h4">Hareketler</div>
+    <div class="box" style="margin-top:0;padding:2px 14px">${S.tx.length?S.tx.map(x=>{const [i,bg,co]=ic[x.k]||ic.rent;return `<div class="txr"><span class="ni" style="background:${bg};color:${co}">${I(i,'s')}</span><span><b>${esc(x.t)}</b><small>${x.w}</small></span><span class="amt" style="color:${x.a>0?'var(--gr)':'var(--dk)'}">${x.a>0?'+':'−'}${tl(Math.abs(x.a))}</span></div>`;}).join(''):`<p class="txt" style="padding:12px 0">Henüz hareket yok.</p>`}</div>
+    <p class="demo">Prototip: tutarlar örnektir</p></div></div>`;
+};
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cs=['#F2994A','#5DBB8A','#12332F','#E07A95','#5B97C9','#F2C94C'];
+  for(let i=0;i<26;i++){const s=document.createElement('span');s.className='conf';s.style.left=(5+Math.random()*90)+'%';s.style.background=cs[i%cs.length];s.style.setProperty('--dx',(Math.random()*120-60)+'px');s.style.setProperty('--r',(Math.random()*720-360)+'deg');s.style.animationDelay=(Math.random()*.25)+'s';app.appendChild(s);setTimeout(()=>s.remove(),2000);}
+}
+
+/* ---------- sheets, toast, loader ---------- */
+const sheetEl = document.getElementById('sheet'), ov = document.getElementById('ov');
+function sheet(html){sheetEl.innerHTML=`<div class="grab"></div>${html}`;sheetEl.classList.add('on');ov.classList.add('on');}
+function closeSheet(){sheetEl.classList.remove('on');ov.classList.remove('on');}
+ov.addEventListener('click',closeSheet);
+let tt;
+function toast(t,ic='info'){const el=document.getElementById('toast');el.innerHTML=I(ic)+`<span>${esc(t)}</span>`;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2600);}
+function loading(txt,ms,cb){const l=document.getElementById('load');document.getElementById('loadTxt').textContent=txt;l.classList.add('on');setTimeout(()=>{l.classList.remove('on');cb();},ms);}
+const SHEETS = {
+  trust:()=>`<h3>Güvenlik ve depozito</h3><p class="txt">Tanımadığın biriyle buluşmadan güvenle kiralaman için altı katman:</p><ul class="rules" style="margin-top:12px">${[['shield','Kimlik doğrulama','Herkes telefon ve e-Devlet ile doğrulanır.'],['lock','Depozito blokajı','Para çekilmez, sadece bloke edilir; iadede kalkar.'],['camera','Fotoğraf kaydı','Eşya alınırken ve bırakılırken fotoğraflanır.'],['locker','Dolap kamerası','Her bölme açılışı kayıt altında.'],['star','Karşılıklı puan','Düşük puanlı kullanıcı sistemden çıkarılır.'],['gift','Hasar güvencesi','Sigorta ortağımızla kazara hasar karşılanır.']].map(([i,t,p])=>`<li style="align-items:flex-start">${I(i)}<span><b style="color:var(--dk)">${t}</b><br>${p}</span></li>`).join('')}</ul><button type="button" class="btn dk full" style="margin-top:16px" data-a="closesheet">Anladım</button>`,
+  faq:()=>`<h3>Sıkça sorulan sorular</h3><div class="faq">${[['Eşyayı bozarsam ne olur?','Hasar güvencesi aldıysan kazara bozulmalarda depozitondan kesinti yapılmaz. Almadıysan onarım bedeli depozitodan karşılanır; fotoğraf kayıtları kimin ne zaman teslim aldığını gösterir.'],['Eşya geri getirilmezse?','Kiralayanın kimliği doğrulanmıştır ve depozitosu blokededir. 24 saat gecikmede depozito kiraya verene aktarılır ve hesap askıya alınır.'],['Depozito ne zaman iade edilir?','İade fotoğrafı onaylandığında, genellikle aynı gün. Para hiç çekilmediği için bankana göre birkaç saat içinde blokaj kalkar.'],['Dolap açılmazsa?','Uygulamadaki “Bir sorun mu var?” butonuna bas; destek ekibi bölmeyi uzaktan açar. Açılamazsa ödediğinin tamamı iade edilir.'],['İadeyi geciktirirsem?','İlk 30 dakika ücretsiz. Sonra başlayan her saat için saatlik ücret alınır, en fazla bir günlük kira kadar. Süreyi önceden uzatırsan gecikme ücreti ödemezsin.'],['Rezervasyonu iptal edebilir miyim?','Alış saatine 2 saat kalana kadar ücretsiz iptal edebilirsin. Daha geç iptallerde kiranın yarısı iade edilir.'],['Kiraya verince ne kazanırım?','Kira bedelinin %80’i senin; KiraKutu %20 komisyon alır. Kazancın her iade sonrası hesabına geçer.'],['Hangi eşyalar konamaz?','Gıda, ilaç, değerli takı, yanıcı ve tehlikeli maddeler ile bölmeye sığmayan eşyalar konamaz.']].map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join('')}</div>`,
+  demo:()=>`<h3>Sunum senaryoları</h3><div class="opt" style="margin-top:8px">${[['emre','Emre matkap kiralıyor'],['selin','Selin saç maşası kiralıyor'],['iade','İade ve puanlama'],['ileri','Cumartesiye bavul ayır'],['gec','Geç iade'],['acilmadi','Dolap açılmadı'],['ver','Eşyanı kiraya ver'],['defne','Kiraya verdiklerim ve kazanç'],['bas','Baştan başla']].map(([k,v])=>`<button type="button" data-scn="${k}"><span class="rd"></span><b>${v}</b></button>`).join('')}</div>`,
+  extend:id=>{const r=S.rentals.find(x=>x.id===id);const it=item(r.item);return `<h3>Süreyi uzat</h3><p class="txt">Bitiş şu an ${new Date(r.end).toLocaleString('tr-TR',{weekday:'long',hour:'2-digit',minute:'2-digit'})}.</p><div class="opt" style="margin-top:12px">${(it.h?[['h3','+3 saat',it.h*3]]:[]).concat([['d1','+1 gün',it.d],['d2','+2 gün',it.d*2]]).map(([k,t,p])=>`<button type="button" data-a="doext" data-id="${id}" data-v="${k}" data-p="${p}"><span class="rd"></span><span style="flex:1"><b>${t}</b><small>${S.bal>=p?`Bakiyenden ${tl(p)} düşülür`:`Kartından ${tl(p)} çekilir`}</small></span></button>`).join('')}</div>`;},
+  sort:()=>`<h3>Sırala ve filtrele</h3><div class="opt" style="margin-top:8px">${[['oner','Önerilen'],['yakin','En yakın dolap'],['ucuz','Fiyat: düşükten yükseğe'],['pahali','Fiyat: yüksekten düşüğe'],['puan','En yüksek puan']].map(([k,v])=>`<button type="button" class="${ui.sort===k?'on':''}" data-a="dosort" data-v="${k}"><span class="rd"></span><b>${v}</b></button>`).join('')}</div><div class="box row">${I('check')}<span class="grow"><b>Sadece müsait olanlar</b></span><button type="button" class="tog ${ui.onlyAv?'on':''}" data-a="onlyav" role="switch" aria-checked="${ui.onlyAv}" aria-label="Sadece müsait olanlar"></button></div><button type="button" class="btn dk full" style="margin-top:14px" data-a="closesheet">Sonuçları göster (${filtered().length})</button>`,
+  cal:()=>{const d0=new Date();d0.setHours(0,0,0,0);const sel=book.date?new Date(book.date):null;const days=[...Array(14)].map((_,i)=>new Date(d0.getTime()+i*864e5));const selDay=sel?new Date(sel).setHours(0,0,0,0):d0.getTime();const hours=[9,11,13,15,17,19,21,23];
+    return `<h3>Ne zaman alacaksın?</h3><p class="txt">Dolap 7/24 açık; seçtiğin saatten 30 dk sonrasına kadar senin için ayrılır.</p><div class="days" style="margin-top:12px">${days.map(d=>`<button type="button" class="${d.getTime()===selDay?'on':''}" data-a="cday" data-v="${d.getTime()}">${d.toLocaleDateString('tr-TR',{weekday:'short'})}<b>${d.getDate()}</b></button>`).join('')}</div><div class="slots" style="margin-top:8px">${hours.map(h=>{const ts=selDay+h*36e5;const past=ts<Date.now();return `<button type="button" class="${sel&&sel.getTime()===ts?'on':''}" data-a="cslot" data-v="${ts}" ${past?'disabled style="opacity:.35"':''}>${String(h).padStart(2,'0')}.00</button>`;}).join('')}</div>`;},
+  invite:()=>{const code=(S.as==='defne'?'DEFNE':'EMRE')+'50';return `<h3>Arkadaşını davet et</h3><p class="txt">Arkadaşın bu kodla üye olup ilk kiralamasını yapınca ikiniz de bakiyenize <b>50 ₺</b> kazanırsınız.</p><div class="code-inv"><b>${code}</b><button type="button" class="btn" style="flex:none" data-a="copy" data-v="${code}">Kopyala</button></div><p class="demo">Prototip: kod örnektir</p>`;},
+  topup:()=>`<h3>Bakiyene para yükle</h3><p class="txt">Yüklediğin tutarı kiralamalarda kullanırsın; her seferinde kart işlemi gerekmez.</p><div class="amts">${[100,200,500].map(v=>`<button type="button" class="${ui.topup===v?'on':''}" data-a="tamt" data-v="${v}">${tl(v)}</button>`).join('')}</div><div class="opt" style="margin-top:12px"><button type="button" class="on"><span class="rd"></span><span class="cc"></span><span style="flex:1"><b>Demo kart •••• 4242</b><small>Banka kartıyla da yüklenebilir</small></span></button></div><button type="button" class="btn full" style="margin-top:14px" data-a="dotopup">${tl(ui.topup)} yükle</button>`,
+  withdraw:()=>`<h3>Bankaya aktar</h3><p class="txt">Bakiyendeki <b>${tl(S.bal)}</b> banka hesabına aktarılsın mı? Aktarım 1 iş günü içinde hesabında olur.</p><div class="box row">${I('wallet')}<span class="grow"><b>Demo banka hesabı</b><small>Prototip: gerçek hesap bilgisi yok</small></span></div><button type="button" class="btn dk full" style="margin-top:14px" data-a="dowithdraw">${tl(S.bal)} aktar</button><button type="button" class="btn gh full" style="margin-top:8px" data-a="closesheet">Vazgeç</button>`,
+  payout:()=>`<h3>Kazancını çek</h3><p class="txt">Kazancın her pazartesi otomatik olarak banka hesabına aktarılır. İstersen hemen de çekebilirsin.</p><div class="box row">${I('wallet')}<span class="grow"><b>Demo banka hesabı</b><small>Prototip: gerçek hesap bilgisi yok</small></span></div><button type="button" class="btn full" style="margin-top:14px" data-a="dopayout">${tl(S.earn[S.earn.length-1])} aktar</button>`,
+  issue:()=>`<h3>Ne oldu?</h3><div class="opt" style="margin-top:8px">${['Bölme açılmadı','Eşya bozuk ya da eksik','Eşya temiz değil','Başka bir şey'].map(t=>`<button type="button" data-a="doissue" data-v="${t}"><span class="rd"></span><b>${t}</b></button>`).join('')}</div><p class="txt" style="margin-top:12px;font-size:13px">Destek ekibi 7/24 yanında. Sorun bildirdiğinde süren durdurulur.</p>`
+};
+
+/* ---------- actions ---------- */
+function newRental(){
+  const {it,total,rent,insFee} = price();
+  const now = Date.now();
+  const id = String(100+S.seq++);
+  const st0 = startTs(); const sched = st0 > now+30*60e3 ? st0 : null;
+  const r = {id,item:it.id,mode:book.mode,qty:book.qty,dur:durTxt(),ins:book.ins,rent,insFee,total,code:code4(),retCode:code4(),st:'res',created:now,sched,pickBy:(sched||now)+30*60e3,start:null,end:null,fromBal:0};
+  if(book.pay==='bal'&&S.bal>0){const use=Math.min(S.bal,total);S.bal-=use;r.fromBal=use;S.tx.unshift({t:`${it.n} kirası`,a:-use,w:'Az önce',k:'rent'});}
+  S.rentals.unshift(r);
+  S.notifs.unshift({id:'n'+now,ic:sched?'cal':'check',bg:'#DDF1E5',t:sched?'Tarih ayrıldı':'Rezervasyonun hazır',p:sched?`${it.n} · ${fDay(sched)} · ${locker(it.l).name} ${it.s}`:`${it.n} · ${locker(it.l).name} ${it.s} · kod ${r.code}`,w:'Az önce'});
+  return r;
+}
+const ACT = {
+  tab:d=>tab(d.s), back:()=>back(), item:d=>go('item',{id:d.id}), locker:d=>go('locker',{id:d.id}),
+  cat:d=>{ui.cat=d.c;render('same');}, clear:()=>{ui.cat='Tümü';ui.q='';ui.sort='oner';ui.onlyAv=false;render('same');},
+  fav:d=>{const i=S.favs.indexOf(d.id);if(i<0){S.favs.push(d.id);toast('Favorilere eklendi','heart');}else S.favs.splice(i,1);render('same');},
+  toast:d=>toast(d.t),
+  book:d=>{book={id:d.id,mode:'d',qty:1,start:'simdi',ins:true,agree:false,pay:S.bal>0?'bal':'card'};go('book');},
+  bpay:d=>{book.pay=d.v;render('same');},
+  bmode:d=>{book.mode=d.m;book.qty=1;render('same');}, bqty:d=>{book.qty=Math.max(1,book.qty+ +d.v);render('same');},
+  bstart:d=>{book.start=d.v;render('same');}, bins:()=>{book.ins=!book.ins;render('same');}, bagree:()=>{book.agree=!book.agree;render('same');},
+  pay:()=>loading('Ödeme onaylanıyor…',1300,()=>{const r=newRental();stack=[{s:'home'},{s:'code',id:r.id}];render('fwd');}),
+  arrive:d=>{unlock={id:d.id,mode:d.m,open:false,photo:null,fail:false,tries:1};go('unlock',{id:d.id,mode:d.m});setTimeout(()=>{if(cur().s==='unlock'){if(failNext===d.id)unlock.fail=true;else unlock.open=true;render('same');}},1400);},
+  retryopen:()=>{unlock.fail=false;unlock.tries++;render('same');setTimeout(()=>{if(cur().s==='unlock'){unlock.fail=true;render('same');}},1400);},
+  skipphoto:()=>{unlock.photo='demo';render('same');},
+  closedoor:d=>{const r=S.rentals.find(x=>x.id===d.id);const it=item(r.item);
+    if(d.m!=='pick'){const fee=lateFee(r);if(fee>0){r.lateFee=fee;r.total+=fee;if(S.bal>=fee){S.bal-=fee;r.lateSrc='bakiyenden düşüldü';}else r.lateSrc='kartından çekildi';S.tx.unshift({t:`${it.n} · gecikme ücreti`,a:-fee,w:'Az önce',k:'rent'});}}
+    if(d.m==='pick'){r.st='act';r.start=Date.now();r.end=r.start+(r.mode==='d'?r.qty*864e5:r.qty*36e5);loading('Bölme kilitleniyor…',800,()=>{stack=[{s:'rentals'},{s:'rental',id:r.id}];ui.rtab='act';render('fwd');toast('Keyifli kullanımlar! Süren başladı.','check');});}
+    else{r.st='done';r.doneAt=Date.now();S.notifs.unshift({id:'n'+Date.now(),ic:'lock',bg:'#DDF1E5',t:'Depozito blokajı kaldırıldı',p:`${it.n} iade edildi · ${tl(it.dep)}`,w:'Az önce'});rate={s:0,t:[],c:''};loading('İade kontrol ediliyor…',1000,()=>{stack=[{s:'rentals'},{s:'rate',id:r.id}];render('fwd');confetti();});}},
+  rental:d=>go('rental',{id:d.id}), rtab:d=>{ui.rtab=d.v;render('same');},
+  showcode:d=>go('code',{id:d.id,mode:'pick'}),
+  return:d=>go('code',{id:d.id,mode:'ret'}),
+  extend:d=>sheet(SHEETS.extend(d.id)),
+  doext:d=>{const r=S.rentals.find(x=>x.id===d.id);const add=d.v==='h3'?3*36e5:d.v==='d1'?864e5:2*864e5;const p=+d.p;r.end+=add;r.total+=p;let src='karttan';if(S.bal>=p){S.bal-=p;r.fromBal=(r.fromBal||0)+p;S.tx.unshift({t:`${item(r.item).n} · süre uzatma`,a:-p,w:'Az önce',k:'rent'});src='bakiyeden';}closeSheet();render('same');toast(`Süre uzatıldı · ${tl(p)} ${src}`,'check');},
+  issue:()=>sheet(SHEETS.issue()), doissue:d=>{closeSheet();toast(`“${d.v}” bildirildi. Destek 5 dk içinde dönecek.`,'chat');},
+  help:d=>{help={rid:d.id,kind:d.k||null,step:d.k?(d.k==='noopen'?'noopen':d.k==='other'?'other':'photo'):'pick',photo:null,tags:[],note:'',from:d.from||'rental',ticket:'K-'+(1040+S.seq)};go('help');},
+  hk:d=>{help.kind=d.v;help.step=d.v==='noopen'?'noopen':d.v==='other'?'other':'photo';render('fwd');},
+  hdemo:()=>{help.photo='demo';render('same');},
+  htag:d=>{const i=help.tags.indexOf(d.v);i<0?help.tags.push(d.v):help.tags.splice(i,1);render('same');},
+  hremote:()=>{const r=S.rentals.find(x=>x.id===help.rid);loading('Destek bölmeyi uzaktan açıyor…',1600,()=>{failNext=false;const mode=r.st==='act'?'ret':'pick';unlock={id:r.id,mode,open:true,photo:null,fail:false,tries:1};if(help.from==='unlock'){stack.pop();}else{stack[stack.length-1]={s:'unlock',id:r.id,mode};}if(cur().s==='unlock')cur().mode=mode;render('fwd');toast(`${item(r.item).s} uzaktan açıldı · talep #${help.ticket}`,'unlock');});},
+  hsend:()=>{const r=S.rentals.find(x=>x.id===help.rid);const it=item(r.item);
+    S.notifs.unshift({id:'k'+Date.now(),ic:'chat',bg:'#FCE6D3',t:`Destek talebi #${help.ticket}`,p:`${HELPK[help.kind]} · ${it.n}`,w:'Az önce'});
+    if(help.kind==='empty'){ACT.hrefund();return;}
+    if(help.kind==='broken'){help.step='broken';render('fwd');return;}
+    help.res='ticket';help.step='done';loading('Gönderiliyor…',700,()=>render('fwd'));},
+  hrefund:()=>{const r=S.rentals.find(x=>x.id===help.rid);const it=item(r.item);
+    r.st='done';r.doneAt=Date.now();r.refund=true;r.ticket=help.ticket;r.refunded=r.total;
+    if(r.fromBal){S.bal+=r.fromBal;S.tx.unshift({t:`${it.n} · iade`,a:r.fromBal,w:'Az önce',k:'top'});}
+    S.notifs.unshift({id:'r'+Date.now(),ic:'wallet',bg:'#DDF1E5',t:'Paran iade edildi',p:`${it.n} · ${tl(r.total)} · depozito blokajı kalktı`,w:'Az önce'});
+    help.res='refund';help.step='done';loading('İade ediliyor…',1000,()=>render('fwd'));},
+  hdisc:()=>{const r=S.rentals.find(x=>x.id===help.rid);const it=item(r.item);const v=Math.round(r.rent*.3);
+    if(r.st==='res'){r.st='act';r.start=Date.now();r.end=r.start+(r.mode==='d'?r.qty*864e5:r.qty*36e5);}
+    r.disc=v;S.bal+=v;S.tx.unshift({t:`${it.n} · sorun indirimi`,a:v,w:'Az önce',k:'top'});help.res='disc';help.step='done';render('fwd');},
+  hdone:()=>{const r=S.rentals.find(x=>x.id===help.rid);ui.side='rent';ui.rtab=r.st==='done'?'done':r.st;stack=[{s:'rentals'},{s:'rental',id:r.id}];render('back');},
+  hsimilar:d=>{ui.cat=d.c;ui.q='';tab('home');},
+  latemsg:d=>{const r=S.rentals.find(x=>x.id===d.id);const it=item(r.item);chatCtx={o:it.o,id:it.id};typing=false;go('chat',{o:it.o,id:it.id});sendMsg('Merhaba, iadeyi biraz geciktirdim, kusura bakma. En kısa sürede dolaba bırakıyorum.');},
+  cancelres:d=>{const r=S.rentals.find(x=>x.id===d.id);const back=freeCancel(r)?r.total:Math.round(r.rent/2);sheet(`<h3>Rezervasyonu iptal et?</h3><p class="txt">${freeCancel(r)?`Alış saatine 2 saatten fazla var. Ödediğin <b>${tl(back)}</b> tamamen iade edilir.`:`Alış saatine 2 saatten az kaldı. Kiranın yarısı, <b>${tl(back)}</b>, iade edilir.`}</p><button type="button" class="btn dk full" style="margin-top:14px" data-a="docancel" data-id="${r.id}" data-v="${back}">İptal et</button><button type="button" class="btn gh full" style="margin-top:8px" data-a="closesheet">Vazgeç</button>`);},
+  docancel:d=>{const r=S.rentals.find(x=>x.id===d.id);const it=item(r.item);const v=+d.v;closeSheet();r.st='done';r.doneAt=Date.now();r.cancelled=true;r.refunded=v;const toBal=Math.min(v,r.fromBal||0);if(toBal){S.bal+=toBal;S.tx.unshift({t:`${it.n} · iptal iadesi`,a:toBal,w:'Az önce',k:'top'});}render('same');toast(`İptal edildi · ${tl(v)} iade edildi`,'check');},
+  star:d=>{rate.s=+d.v;render('same');}, rtag:d=>{const i=rate.t.indexOf(d.v);i<0?rate.t.push(d.v):rate.t.splice(i,1);render('same');},
+  sendrate:d=>{const r=S.rentals.find(x=>x.id===d.id);r.rating=rate.s;stack=[{s:'home'}];render('back');setTimeout(()=>toast('Puanın gönderildi, teşekkürler!','star'),200);setTimeout(()=>{if(!S.voted&&cur().s==='home')sheet(`<h3>Bir saniye!</h3><p class="txt">KiraKutu bir girişimcilik projesi. Fikrimizi tek soruda değerlendirir misin?</p><button type="button" class="btn full" style="margin-top:14px" data-a="survey">Değerlendir</button><button type="button" class="btn gh full" style="margin-top:8px" data-a="closesheet">Şimdi değil</button>`);},1800);},
+  notif:d=>{if(!S.read.includes(d.id))S.read.push(d.id);const n=S.notifs.find(x=>x.id===d.id);if(n&&n.id==='n2'){go('item',{id:'masa'});}else render('same');},
+  readall:()=>{S.notifs.forEach(n=>{if(!S.read.includes(n.id))S.read.push(n.id);});render('same');},
+  sheet:d=>sheet(SHEETS[d.v]()), closesheet:()=>closeSheet(),
+  reset:()=>{sheet(`<h3>Demoyu sıfırla?</h3><p class="txt">Tüm kiralamalar, ilanlar ve cevaplar silinir; tanıtım ekranları yeniden açılır.</p><button type="button" class="btn dk full" style="margin-top:14px" data-a="doreset">Sıfırla</button><button type="button" class="btn gh full" style="margin-top:8px" data-a="closesheet">Vazgeç</button>`);},
+  doreset:()=>{closeSheet();S=fresh();S.v3=true;ui={cat:'Tümü',q:'',rtab:'act',sort:'oner',onlyAv:false,side:'rent'};stack=[{s:'home'}];render('tab');onboarding();},
+  wiz:()=>{wiz={step:1,c:null,n:'',d:'',cond:'İyi',p:100,hour:true,l:'L1',days:'Her gün',size:'M',photos:[]};go('wiz');},
+  wcat:d=>{wiz.c=d.v;wiz.size=['Seyahat','Kamp','Spor'].includes(d.v)?'L':['Okul','Bakım'].includes(d.v)?'S':'M';wiz.p={Alet:110,Bakım:90,Seyahat:90,Elektronik:150,Etkinlik:180,Kamp:150,Okul:30,Spor:80,Mutfak:100}[d.v];render('same');},
+  wcond:d=>{wiz.cond=d.v;render('same');}, whour:()=>{wiz.hour=!wiz.hour;render('same');}, wlk:d=>{wiz.l=d.v;render('same');}, wdays:d=>{wiz.days=d.v;render('same');},
+  wback:()=>{wiz.step--;render('back');},
+  wnext:()=>{if(wiz.step<5){wiz.step++;render('fwd');return;}
+    const row=wiz.size==='L'?'C':wiz.size==='S'?'A':'B';
+    const used=allItems().filter(x=>x.l===wiz.l).map(x=>x.s).concat(BUSY[wiz.l]||[]);
+    const s=['1','2','3','4'].map(n=>row+n).find(x=>!used.includes(x))||SLOTS.find(x=>!used.includes(x))||'B5';
+    const id='u'+Date.now();
+    S.listings.unshift({id,n:wiz.n.trim(),c:wiz.c,ic:CATICON[wiz.c],d:wiz.p,h:wiz.hour?Math.round(wiz.p/4/5)*5:0,dep:Math.max(200,Math.round(wiz.p*5/100)*100),buy:wiz.p*20,l:wiz.l,s,av:true,live:false,desc:wiz.d.trim()||'Açıklama eklenmedi.',rules:['Temiz ve eksiksiz iade edilir'],rv:[],code:code4(),photo:wiz.photos[0]||null,o:S.as});
+    loading('İlanın hazırlanıyor…',900,()=>{ui.side='lend';stack=[{s:'rentals'},{s:'dropoff',id}];render('fwd');});},
+  dropoff:d=>go('dropoff',{id:d.id}),
+  drop:d=>{const l=S.listings.find(x=>x.id===d.id);l.live=true;S.notifs.unshift({id:'n'+Date.now(),ic:'check',bg:'#DDF1E5',t:'İlanın yayında!',p:`${l.n} · ${locker(l.l).name} ${l.s}`,w:'Az önce'});loading('Bölme kilitleniyor…',800,()=>{stack=[{s:'home'},{s:'item',id:l.id}];render('fwd');toast('İlanın yayında! Komşuların artık görebilir.','check');confetti();});},
+  survey:()=>{closeSheet();go('survey');}, vote:d=>{S.vote=d.v;render('same');},
+  vitem:d=>{const i=S.voteItems.indexOf(d.v);i<0?S.voteItems.push(d.v):S.voteItems.splice(i,1);render('same');},
+  sendvote:()=>{S.voted=true;render('same');}, revote:()=>{S.voted=false;render('same');}
+};
+Object.assign(ACT,{
+  mapfull:()=>go('mapfull'), favs:()=>go('favs'), inbox:()=>go('inbox'),
+  chat:d=>{chatCtx={o:d.o,id:d.id};typing=false;go('chat',{o:d.o,id:d.id});},
+  qmsg:d=>sendMsg(d.v),
+  watch:d=>{const i=S.watch.indexOf(d.id);if(i>=0){S.watch.splice(i,1);render('same');toast('Takip iptal edildi');return;}
+    S.watch.push(d.id);render('same');const it=item(d.id);toast('Müsait olunca sana haber vereceğiz','bell');
+    setTimeout(()=>{if(!S.watch.includes(d.id))return;S.watch.splice(S.watch.indexOf(d.id),1);S.freed.push(d.id);S.notifs.unshift({id:'w'+Date.now(),ic:'bell',bg:'#FCE6D3',t:`${it.n} artık müsait!`,p:`${owner(it).n} iade etti · ${locker(it.l).name} ${it.s}`,w:'Az önce'});toast(`${it.n} artık müsait!`,'bell');if(cur().s==='item'&&cur().id===d.id)render('same');else save();},7000);},
+  dosort:d=>{ui.sort=d.v;closeSheet();render('same');}, onlyav:()=>{ui.onlyAv=!ui.onlyAv;sheet(SHEETS.sort());render('same');},
+  cday:d=>{const day=+d.v;const old=book.date?new Date(book.date):null;let h=old?old.getHours():19;let ts=day+h*36e5;if(ts<Date.now()){ts=day+[9,11,13,15,17,19,21,23].map(x=>x*36e5).find(x=>day+x>Date.now());}book.date=ts||null;book.start='tarih';sheet(SHEETS.cal());render('same');},
+  cslot:d=>{book.date=+d.v;book.start='tarih';closeSheet();render('same');toast('Alış zamanı seçildi','cal');},
+  copy:d=>{try{navigator.clipboard.writeText(d.v).then(()=>toast('Kod kopyalandı','check'),()=>toast('Kod: '+d.v));}catch(e){toast('Kod: '+d.v);}},
+  wallet:()=>{closeSheet();go('wallet');},
+  tamt:d=>{ui.topup=+d.v;sheet(SHEETS.topup());},
+  dotopup:()=>{const v=ui.topup;closeSheet();loading('Yükleniyor…',900,()=>{S.bal+=v;S.tx.unshift({t:'Bakiye yükleme · Demo kart',a:v,w:'Az önce',k:'top'});render('same');toast(`${tl(v)} bakiyene eklendi`,'wallet');});},
+  dowithdraw:()=>{const v=S.bal;closeSheet();S.bal=0;S.tx.unshift({t:'Bankaya aktarım',a:-v,w:'Az önce',k:'out'});render('same');toast(`${tl(v)} aktarıldı · 1 iş günü içinde hesabında`,'send');},
+  side:d=>{ui.side=d.v;render('same');},
+  lendside:()=>{ui.side='lend';tab('rentals');},
+  pause:d=>{const i=S.paused.indexOf(d.id);i<0?S.paused.push(d.id):S.paused.splice(i,1);render('same');toast(i<0?'İlan duraklatıldı':'İlan yeniden yayında');},
+  hostdemo:()=>{const pool=hostItems().filter(x=>x.id!==S.hostRent.item);const it=pool[0]||item('hoparlor');const who=['Can T.','Ece K.','Mert A.','Kaan D.'][S.hostLog.length%4];const net=Math.round(it.d*.8);S.earn[S.earn.length-1]+=net;S.bal+=net;S.tx.unshift({t:`${it.n} kirası · ${who}`,a:net,w:'Az önce',k:'earn'});S.hostLog.unshift({n:it.n,who,net,w:'Az önce'});S.notifs.unshift({id:'h'+Date.now(),ic:'check',bg:'#DDF1E5',t:`${it.n} kiralandı`,p:`${who} · eline ${tl(net)} geçecek`,w:'Az önce'});render('same');toast(`${it.n} kiralandı! +${tl(net)} bakiyene`,'wallet');confetti();},
+  dopayout:()=>{closeSheet();toast('Aktarım başlatıldı · 1 iş günü içinde hesabında','wallet');}
+});
+view.addEventListener('submit',e=>{if(e.target.id==='cf'){e.preventDefault();const i=document.getElementById('msg');const v=i.value;i.value='';sendMsg(v);setTimeout(()=>document.getElementById('msg')?.focus(),50);}});
+view.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const f=ACT[t.dataset.a];if(f)f(t.dataset,t,e);});
+sheetEl.addEventListener('click',e=>{const s=e.target.closest('[data-scn]');if(s){closeSheet();scenario(s.dataset.scn);return;}const t=e.target.closest('[data-a]');if(!t)return;const f=ACT[t.dataset.a];if(f)f(t.dataset,t,e);});
+document.querySelector('.scn').addEventListener('click',e=>{const s=e.target.closest('[data-scn]');if(s)scenario(s.dataset.scn);});
+view.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){ui.q=t.value;document.getElementById('grid').innerHTML=gridHTML();}
+  if(t.id==='wn'){wiz.n=t.value;const b=view.querySelector('[data-a="wnext"]');if(b)b.disabled=t.value.trim().length<3;}
+  if(t.id==='wd')wiz.d=t.value;
+  if(t.id==='rc')rate.c=t.value;
+  if(t.id==='hnote'){help.note=t.value;const b=document.querySelector('[data-a="hsend"]');if(b)b.disabled=t.value.trim().length<5;}
+  if(t.id==='wp'){wiz.p=+t.value;t.style.setProperty('--p',(wiz.p-20)/480*100+'%');document.getElementById('wpv').textContent=tl(wiz.p);const n=Math.round(wiz.p*.8);document.getElementById('wnet').textContent=tl(n);document.getElementById('wmo').textContent=tl(n*4);}
+});
+view.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='ph'&&t.files[0]){unlock.photo=URL.createObjectURL(t.files[0]);render('same');}
+  if(t.id==='hph'&&t.files[0]){help.photo=URL.createObjectURL(t.files[0]);render('same');}
+  if(t.id==='wph'&&t.files.length){wiz.photos=[...t.files].slice(0,5).map(f=>URL.createObjectURL(f));render('same');}
+});
+view.addEventListener('keydown',e=>{if(e.target.id==='q'&&e.key==='Enter'){e.target.blur();}});
+
+/* ---------- timers ---------- */
+function fmt(ms){
+  if(ms<=0) return '0 dk';
+  const m=Math.floor(ms/6e4), h=Math.floor(m/60), d=Math.floor(h/24);
+  if(d>=1) return `${d} gün ${h%24} sa`;
+  if(h>=1) return `${h} sa ${m%60} dk`;
+  const s=Math.floor(ms/1000)%60; return `${m}:${String(s).padStart(2,'0')}`;
+}
+function tick(){
+  const now=Date.now();
+  view.querySelectorAll('[data-cd]').forEach(el=>{el.textContent=fmt(+el.dataset.cd-now);});
+  view.querySelectorAll('[data-late]').forEach(el=>{el.textContent=fmt(now-+el.dataset.late);});
+  view.querySelectorAll('[data-lf]').forEach(el=>{const [e,u,c]=el.dataset.lf.split('|').map(Number);const f=feeAt(e,u,c,now);el.textContent=f?tl(f):(now-e<GRACE?`0 ₺ · ${fmt(e+GRACE-now)} ücretsiz`:'0 ₺');});
+  if([...view.querySelectorAll('[data-flip]')].some(el=>+el.dataset.flip<now)){render('same');return;}
+  let ch=false;
+  S.rentals.forEach(r=>{if(r.st!=='act'||!r.end)return;const it=item(r.item);if(!it)return;
+    if(!r.rem&&r.end>now&&r.end-now<36e5){r.rem=true;ch=true;S.notifs.unshift({id:'m'+r.id,ic:'clock',bg:'#FCE6D3',t:'İade süren 1 saatten az',p:`${it.n} · ${locker(it.l).name} ${it.s} · süreyi uygulamadan uzatabilirsin`,w:'Az önce'});toast(`${it.n}: iade süren 1 saatten az`,'clock');}
+    if(!r.lateN&&r.end<=now){r.lateN=true;r.rem=true;ch=true;S.notifs.unshift({id:'g'+r.id,ic:'alert',bg:'#FBE3E0',t:'İade süren doldu',p:`${it.n} · 30 dk içinde iade edersen ücret yok`,w:'Az önce'});toast(`${it.n}: iade süren doldu`,'alert');}});
+  if(ch){save();const c=cur().s;if(ROOT.has(c)||c==='rental')render('same');}
+  view.querySelectorAll('[data-pg]').forEach(el=>{const [a,b]=el.dataset.pg.split('|').map(Number);el.style.width=Math.min(100,Math.max(2,(now-a)/(b-a)*100))+'%';});
+  const c=document.getElementById('clock'); if(c){const d=new Date();c.textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');}
+}
+setInterval(tick,1000);
+
+/* ---------- scenarios + onboarding ---------- */
+function scenario(k){
+  closeSheet(); document.querySelector('.onb')?.remove(); failNext=false;
+  S.onb=true; ui={cat:'Tümü',q:'',rtab:'act',sort:'oner',onlyAv:false,side:'rent'};
+  if(k==='defne'){ensureHost();ui.side='lend';stack=[{s:'rentals'}];render('tab');save();return;}
+  if(k==='bas'){S=fresh();stack=[{s:'home'}];render('tab');onboarding();return;}
+  if(k==='emre'){stack=[{s:'home'}];render('tab');setTimeout(()=>go('item',{id:'matkap'}),250);}
+  if(k==='selin'){stack=[{s:'home'}];ui.cat='Bakım';render('tab');setTimeout(()=>go('locker',{id:'L3'}),250);}
+  if(k==='ver'){stack=[{s:'home'}];render('tab');setTimeout(()=>ACT.wiz(),250);}
+  if(k==='gec'){
+    S.rentals=S.rentals.filter(r=>r.st==='done');
+    book={id:'matkap',mode:'d',qty:1,start:'simdi',ins:true,agree:true};
+    const r=newRental(); r.st='act'; r.start=Date.now()-(26*36e5+15*6e4); r.end=r.start+864e5; r.rem=true;
+    stack=[{s:'rentals'},{s:'rental',id:r.id}]; ui.rtab='act'; render('fwd');
+  }
+  if(k==='acilmadi'){
+    S.rentals=S.rentals.filter(r=>r.st==='done');
+    book={id:'masa',mode:'h',qty:3,start:'simdi',ins:true,agree:true};
+    const r=newRental(); failNext=r.id;
+    stack=[{s:'home'},{s:'code',id:r.id}]; render('fwd');
+    setTimeout(()=>toast('“Dolaba vardım”a bas: bölme açılmayacak','info'),400);
+  }
+  if(k==='ileri'){
+    stack=[{s:'home'},{s:'item',id:'bavul'}];
+    const d=new Date();d.setHours(0,0,0,0);let add=(6-d.getDay()+7)%7;if(add<2)add+=7;d.setDate(d.getDate()+add);d.setHours(11,0,0,0);
+    book={id:'bavul',mode:'d',qty:3,start:'tarih',date:d.getTime(),ins:true,agree:false,pay:S.bal>0?'bal':'card'};
+    stack.push({s:'book'});render('fwd');
+  }
+  if(k==='iade'){
+    S.rentals=S.rentals.filter(r=>r.st==='done');
+    book={id:'matkap',mode:'d',qty:1,start:'simdi',ins:true,agree:true};
+    const r=newRental(); r.st='act'; r.start=Date.now()-20*36e5; r.end=r.start+864e5;
+    stack=[{s:'rentals'},{s:'rental',id:r.id}]; ui.rtab='act'; render('fwd');
+  }
+  save();
+}
+function onboarding(){
+  if(S.onb) return;
+  const ill = [
+    `<svg viewBox="0 0 220 240" width="220" height="240" aria-hidden="true"><rect x="30" y="10" width="160" height="220" rx="18" fill="#1C4540"/><rect x="42" y="22" width="136" height="30" rx="8" fill="#F2994A"/>${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${42+c*46}" y="${62+r*54}" width="42" height="48" rx="7" fill="${r===1&&c===2?'#F2994A':'#24574F'}"/>`).join('')).join('')}<circle cx="190" cy="40" r="26" fill="#F7F3EA"/><path d="M178 40l8 8 16-16" stroke="#12332F" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    `<svg viewBox="0 0 220 240" width="220" height="240" aria-hidden="true"><rect x="55" y="10" width="110" height="220" rx="22" fill="#F7F3EA"/><rect x="65" y="34" width="90" height="172" rx="8" fill="#FFFDF8"/>${'4821'.split('').map((d,i)=>`<rect x="${70+i*21}" y="70" width="18" height="26" rx="5" fill="#E4EEE9"/><text x="${79+i*21}" y="89" text-anchor="middle" font-family="Rubik,Arial" font-weight="700" font-size="16" fill="#12332F">${d}</text>`).join('')}<rect x="82" y="112" width="56" height="56" rx="6" fill="#12332F"/><rect x="88" y="118" width="16" height="16" fill="#FFFDF8"/><rect x="116" y="118" width="16" height="16" fill="#FFFDF8"/><rect x="88" y="146" width="16" height="16" fill="#FFFDF8"/><rect x="118" y="148" width="8" height="8" fill="#FFFDF8"/><rect x="70" y="180" width="80" height="18" rx="9" fill="#F2994A"/></svg>`,
+    `<svg viewBox="0 0 220 240" width="220" height="240" aria-hidden="true"><circle cx="70" cy="80" r="36" fill="#F2994A"/><rect x="38" y="120" width="64" height="90" rx="30" fill="#F2994A"/><circle cx="150" cy="80" r="36" fill="#C9DDD8"/><rect x="118" y="120" width="64" height="90" rx="30" fill="#C9DDD8"/><rect x="80" y="140" width="60" height="44" rx="10" fill="#F7F3EA"/><path d="M98 162h24M110 150v24" stroke="#12332F" stroke-width="5" stroke-linecap="round"/></svg>`
+  ];
+  const txt = [['Mahallende kiralık her şey','Matkaptan saç maşasına, bavuldan projeksiyona; komşularının eşyaları yürüme mesafesindeki dolapta.'],['Kodla aç, al, kullan','Uygulamadan kirala, telefonuna gelen kodla bölmeyi aç. Kimseyle buluşma, saat ayarlama yok.'],['Boşta duranı kazanca çevir','Az kullandığın eşyayı dolaba bırak; her kiralamada kazancın hesabına geçsin.']];
+  const el=document.createElement('div'); el.className='onb';
+  el.innerHTML=`<button type="button" class="skip" data-o="skip">Atla</button><div class="slides" id="sl">${txt.map((t,i)=>`<div class="sl"><div class="ill">${ill[i]}</div><h2>${t[0]}</h2><p>${t[1]}</p></div>`).join('')}</div><div class="ft"><div class="dots">${[0,1,2].map(i=>`<i class="${i?'':'on'}"></i>`).join('')}</div><button type="button" class="btn full" data-o="next">İleri</button><p class="lnk">Kimliğin e-Devlet ile doğrulanır · Prototipte demo hesabı kullanılır</p></div>`;
+  app.appendChild(el);
+  const sl=el.querySelector('#sl'); let idx=0;
+  const upd=()=>{idx=Math.round(sl.scrollLeft/sl.clientWidth);el.querySelectorAll('.dots i').forEach((d,i)=>d.classList.toggle('on',i===idx));el.querySelector('[data-o=next]').textContent=idx===2?'Emre olarak başla':'İleri';};
+  sl.addEventListener('scroll',()=>requestAnimationFrame(upd));
+  const finish=()=>{S.onb=true;save();el.remove();toast('Hoş geldin Emre! Kimliğin doğrulandı.','check');};
+  el.addEventListener('click',e=>{const b=e.target.closest('[data-o]');if(!b)return;if(b.dataset.o==='skip')return finish();if(idx<2)sl.children[idx+1].scrollIntoView({behavior:'smooth',inline:'start',block:'nearest'});else finish();});
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+render('tab');
+onboarding();
+}
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol!=='file:'){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
