@@ -964,8 +964,9 @@ SCR.wiz = () => {
 SCR.dropoff = c => {
   const l = S.listings.find(x=>x.id===c.id); const L = locker(l.l);
   return `<div class="scr"><div class="hd" style="padding-bottom:0"><span style="flex:1"></span><button type="button" class="ib" data-a="dropclose" aria-label="Kapat">${I('x')}</button></div><div class="succ" style="padding-top:0"><div class="si">${I('check')}</div><h2>İlanın hazır!</h2><p>Eşyanı 24 saat içinde <b>${L.name}</b> dolabına bırakınca yayına girecek.</p></div>
-    <div class="pad" style="text-align:center"><p class="sub" style="justify-content:center;margin-top:14px">Bırakma kodun · bölme ${l.s}</p><div class="codebig">${l.code.split('').map(d=>`<span>${d}</span>`).join('')}</div>
-    <div class="how" style="text-align:left;margin-top:16px"><div>Dolabın ekranına bırakma kodunu gir.</div><div>${l.s} bölmesi açılınca eşyanı koy ve fotoğrafını çek.</div><div>Kapağı kapat; ilanın aynı anda yayına girer.</div></div>
+    <div class="pad" style="text-align:center"><p class="sub" style="justify-content:center;margin-top:14px">Bırakma kodun · bölme ${l.s}</p><div class="codebig" aria-label="Kod ${l.code.split('').join(' ')}">${l.code.split('').map(d=>`<span>${d}</span>`).join('')}</div>
+    <div class="qrw">${qrSVG(l.code+l.id)}</div>
+    <div class="how" style="text-align:left;margin-top:16px"><div>Dolabın ekranına bırakma kodunu gir ya da QR’ı okut.</div><div>${l.s} bölmesi açılınca eşyanı koy ve fotoğrafını çek.</div><div>Kapağı kapat; ilanın aynı anda yayına girer.</div></div>
     <p class="txt" style="font-size:13px;color:var(--mu);margin-top:16px">Kodu istediğin zaman <b style="color:var(--dk)">Kiralarım → Kiraya verdiklerim</b>’de bulabilirsin.</p></div></div>
     <div class="cta"><button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="dropclose">Daha sonra</button><button type="button" class="btn dk" data-a="drop" data-id="${l.id}">${I('locker')}Dolaba bıraktım</button></div>`;
 };
