@@ -927,6 +927,17 @@ SCR.profile = () => {
       <button type="button" data-a="survey"><span class="mi" style="background:var(--or2);color:var(--ort)">${I('chat')}</span><span class="grow"><b style="font-weight:600">Fikrimizi değerlendir</b></span>${I('chev')}</button>
     </div><button type="button" class="reset" data-a="reset">Demoyu sıfırla</button><p class="demo" style="padding-top:4px">KiraKutu prototipi · Girişimcilik dersi projesi</p></div>`;
 };
+const WEX = {
+  Alet:['Darbeli matkap','Örn. 600 W, uç seti ve dübel kutusu dahil. Beton için darbe modu var.'],
+  Bakım:['Saç düzleştirici','Örn. Seramik plakalı, 230°C’ye kadar. Kılıfı ve ısıya dayanıklı altlığı dahil.'],
+  Seyahat:['Kabin boy valiz','Örn. 55 cm, 4 tekerlekli, TSA kilitli. Uçak kabin ölçülerine uygun.'],
+  Elektronik:['Fotoğraf makinesi','Örn. 24 MP aynasız, 18–55 mm lens, 2 batarya ve şarj aleti dahil.'],
+  Etkinlik:['Projeksiyon cihazı','Örn. Full HD, HDMI ve kablosuz bağlantı. 100 inç perde dahil.'],
+  Kamp:['4 kişilik çadır','Örn. Su geçirmez, kolay kurulum. Kazıklar ve taşıma çantası dahil.'],
+  Okul:['Bilimsel hesap makinesi','Örn. Grafik çizebilen, sınavlarda kullanılabilen model. Pili yeni.'],
+  Spor:['Tenis raketi','Örn. 2 raket ve 3 top. Başlangıç seviyesi için uygun.'],
+  Mutfak:['Stand mikser','Örn. 1000 W, 5 litre hazne. Çırpma teli, yoğurma kancası dahil.']
+};
 SCR.wiz = () => {
   const w = wiz; const st = w.step;
   const steps = `<div class="wsteps">${[1,2,3,4,5].map(i=>`<i class="${i<=st?'on':''}"></i>`).join('')}</div>`;
@@ -937,8 +948,8 @@ SCR.wiz = () => {
     body = `<h2 class="tt">Fotoğraf ve açıklama</h2><p class="sub">İyi bir fotoğraf kiralanma şansını ikiye katlar.</p>
       <label class="photo ${w.photos.length?'done':''}" style="margin-top:16px">${w.photos.length?`<img src="${w.photos[0]}" alt="Seçilen fotoğraf"><span class="ok">${I('check','s')}${w.photos.length} fotoğraf</span>`:`${I('image','l')}<b style="color:var(--dk)">Fotoğraf ekle</b><small>Galeriden seç ya da çek</small>`}<input type="file" accept="image/*" multiple id="wph" aria-label="Fotoğraf ekle"></label>
       ${w.photos.length>1?`<div class="thumbs">${w.photos.slice(1).map(p=>`<img src="${p}" alt="">`).join('')}</div>`:''}
-      <label class="lb" for="wn">Başlık</label><input class="inp" id="wn" maxlength="48" placeholder="Örn. Saç düzleştirici" value="${esc(w.n)}">
-      <label class="lb" for="wd">Açıklama</label><textarea id="wd" rows="3" maxlength="240" placeholder="Durumu, içindekiler, nasıl kullanılır…">${esc(w.d)}</textarea>
+      <label class="lb" for="wn">Başlık</label><input class="inp" id="wn" maxlength="48" placeholder="Örn. ${esc((WEX[w.c]||WEX.Bakım)[0])}" value="${esc(w.n)}">
+      <label class="lb" for="wd">Açıklama</label><textarea id="wd" rows="3" maxlength="240" placeholder="${esc((WEX[w.c]||WEX.Bakım)[1])}">${esc(w.d)}</textarea>
       <label class="lb">Durumu</label><div class="chips" style="padding:0">${['Yeni gibi','İyi','Kullanılmış'].map(v=>`<button type="button" class="chip ${w.cond===v?'on':''}" data-a="wcond" data-v="${v}">${v}</button>`).join('')}</div>`;}
   if(st===3){
     const sug = {Alet:[60,160],Bakım:[70,120],Seyahat:[70,120],Elektronik:[70,260],Etkinlik:[150,220],Kamp:[120,180],Okul:[20,50],Spor:[60,100],Mutfak:[80,130]}[w.c]||[50,150];
@@ -973,11 +984,13 @@ SCR.dropoff = c => {
 SCR.survey = () => {
   const v = S.vote;
   const opts = ['Kesinlikle kullanırdım','Muhtemelen kullanırdım','Kararsızım','Pek sanmıyorum','Kullanmazdım'];
-  const its = ['Bavul','Saç maşası / düzleştirici','Projeksiyon','Fotoğraf makinesi','Oyun konsolu','Matkap','Kamp malzemesi','Hesap makinesi'];
-  if(S.voted) return `<div class="scr">${hd('Fikrimizi değerlendir')}<div class="succ"><div class="si">${I('check')}</div><h2>Teşekkürler!</h2><p>Cevabın: <b>${esc(v)}</b>${S.voteItems.length?`<br>En çok: ${S.voteItems.map(esc).join(', ')}`:''}</p>${FORM_URL?`<p style="margin-top:16px"><a href="${FORM_URL}" target="_blank" rel="noopener" class="btn" style="display:inline-flex;text-decoration:none">3 dakikalık ankete katıl</a></p>`:''}<button type="button" class="btn gh" style="margin-top:16px;display:inline-flex" data-a="revote">Cevabı değiştir</button></div></div>`;
+  const its = ['Bavul','Saç maşası / düzleştirici','Projeksiyon','Fotoğraf makinesi','Oyun konsolu','Matkap','Kamp malzemesi','Hesap makinesi','Diğer'];
+  const itemsTxt = () => S.voteItems.map(t=>t==='Diğer'&&(S.voteOther||'').trim()?`Diğer: ${S.voteOther.trim()}`:t).map(esc).join(', ');
+  if(S.voted) return `<div class="scr">${hd('Fikrimizi değerlendir')}<div class="succ"><div class="si">${I('check')}</div><h2>Teşekkürler!</h2><p>Cevabın: <b>${esc(v)}</b>${S.voteItems.length?`<br>En çok: ${itemsTxt()}`:''}</p>${FORM_URL?`<p style="margin-top:16px"><a href="${FORM_URL}" target="_blank" rel="noopener" class="btn" style="display:inline-flex;text-decoration:none">3 dakikalık ankete katıl</a></p>`:''}<button type="button" class="btn gh" style="margin-top:16px;display:inline-flex" data-a="revote">Cevabı değiştir</button></div></div>`;
   return `<div class="scr">${hd('Fikrimizi değerlendir')}<div class="pad"><h2 class="tt">KiraKutu mahallende olsa kullanır mıydın?</h2><p class="sub">Girişimcilik projemiz için tek dakikalık soru.</p>
     <div class="opt" style="margin-top:14px">${opts.map(o=>`<button type="button" class="${v===o?'on':''}" data-a="vote" data-v="${o}"><span class="rd"></span><b>${o}</b></button>`).join('')}</div>
-    <label class="lb">En çok neyi kiralardın? (birden fazla)</label><div class="qt" style="justify-content:flex-start">${its.map(t=>`<button type="button" class="chip ${S.voteItems.includes(t)?'on':''}" data-a="vitem" data-v="${t}">${t}</button>`).join('')}</div></div></div>
+    <label class="lb">En çok neyi kiralardın? (birden fazla)</label><div class="qt" style="justify-content:flex-start">${its.map(t=>`<button type="button" class="chip ${S.voteItems.includes(t)?'on':''}" data-a="vitem" data-v="${t}">${t==='Diğer'?I('plus','s'):''}${t}</button>`).join('')}</div>
+    ${S.voteItems.includes('Diğer')?`<input class="inp" id="vother" maxlength="80" style="margin-top:10px" placeholder="Başka ne kiralamak isterdin? Örn. dikiş makinesi" value="${esc(S.voteOther||'')}" aria-label="Başka ne kiralamak isterdin">`:''}</div></div>
     <div class="cta"><button type="button" class="btn" data-a="sendvote" ${v?'':'disabled'}>Gönder</button></div>`;
 };
 
@@ -1231,7 +1244,7 @@ const ACT = {
   dropclose:()=>{ui.side='lend';stack=[{s:'rentals'}];render('back');toast('İlanın kaydedildi. Kodu Kiraya verdiklerim’de bulabilirsin.','check');},
   drop:d=>{const l=S.listings.find(x=>x.id===d.id);l.live=true;S.notifs.unshift({id:'n'+Date.now(),ic:'check',bg:'#DDF1E5',t:'İlanın yayında!',p:`${l.n} · ${locker(l.l).name} ${l.s}`,w:'Az önce'});loading('Bölme kilitleniyor…',800,()=>{stack=[{s:'home'},{s:'item',id:l.id}];render('fwd');toast('İlanın yayında! Komşuların artık görebilir.','check');confetti();});},
   survey:()=>{closeSheet();go('survey');}, vote:d=>{S.vote=d.v;render('same');},
-  vitem:d=>{const i=S.voteItems.indexOf(d.v);i<0?S.voteItems.push(d.v):S.voteItems.splice(i,1);render('same');},
+  vitem:d=>{const i=S.voteItems.indexOf(d.v);i<0?S.voteItems.push(d.v):S.voteItems.splice(i,1);render('same');if(d.v==='Diğer'&&i<0)setTimeout(()=>document.getElementById('vother')?.focus(),50);},
   sendvote:()=>{S.voted=true;render('same');}, revote:()=>{S.voted=false;render('same');}
 };
 Object.assign(ACT,{
@@ -1265,6 +1278,7 @@ view.addEventListener('input',e=>{
   if(t.id==='wn'){wiz.n=t.value;const b=view.querySelector('[data-a="wnext"]');if(b)b.disabled=t.value.trim().length<3;}
   if(t.id==='wd')wiz.d=t.value;
   if(t.id==='rc')rate.c=t.value;
+  if(t.id==='vother'){S.voteOther=t.value;save();}
   if(t.id==='hnote'){help.note=t.value;const b=document.querySelector('[data-a="hsend"]');if(b)b.disabled=t.value.trim().length<5;}
   if(t.id==='wp'){wiz.p=+t.value;t.style.setProperty('--p',(wiz.p-20)/480*100+'%');document.getElementById('wpv').textContent=tl(wiz.p);const n=Math.round(wiz.p*.8);document.getElementById('wnet').textContent=tl(n);document.getElementById('wmo').textContent=tl(n*4);}
 });
