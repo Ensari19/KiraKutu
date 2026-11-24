@@ -1,5 +1,5 @@
 // KiraKutu service worker: uygulamayı çevrimdışı da açılır yapar.
-const CACHE = 'kirakutu-v3';
+const CACHE = 'kirakutu-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {
@@ -12,7 +12,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   // Önce ağ, olmazsa önbellek: güncellemeler hemen görünür, internet yokken de çalışır.
-  e.respondWith(fetch(e.request).then(r => {
+  // Sayfa açılışlarında tarayıcı önbelleğini atla: yeni sürüm hemen gelsin.
+  const req = e.request.mode === 'navigate' ? fetch(e.request.url, {cache: 'no-cache'}) : fetch(e.request);
+  e.respondWith(req.then(r => {
     const copy = r.clone();
     caches.open(CACHE).then(c => c.put(e.request, copy));
     return r;
