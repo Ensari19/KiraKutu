@@ -963,10 +963,11 @@ SCR.wiz = () => {
 };
 SCR.dropoff = c => {
   const l = S.listings.find(x=>x.id===c.id); const L = locker(l.l);
-  return `<div class="scr"><div class="succ"><div class="si">${I('check')}</div><h2>İlanın hazır!</h2><p>Eşyanı 24 saat içinde <b>${L.name}</b> dolabına bırakınca yayına girecek.</p></div>
+  return `<div class="scr"><div class="hd" style="padding-bottom:0"><span style="flex:1"></span><button type="button" class="ib" data-a="dropclose" aria-label="Kapat">${I('x')}</button></div><div class="succ" style="padding-top:0"><div class="si">${I('check')}</div><h2>İlanın hazır!</h2><p>Eşyanı 24 saat içinde <b>${L.name}</b> dolabına bırakınca yayına girecek.</p></div>
     <div class="pad" style="text-align:center"><p class="sub" style="justify-content:center;margin-top:14px">Bırakma kodun · bölme ${l.s}</p><div class="codebig">${l.code.split('').map(d=>`<span>${d}</span>`).join('')}</div>
-    <div class="how" style="text-align:left;margin-top:16px"><div>Dolabın ekranına bırakma kodunu gir.</div><div>${l.s} bölmesi açılınca eşyanı koy ve fotoğrafını çek.</div><div>Kapağı kapat; ilanın aynı anda yayına girer.</div></div></div></div>
-    <div class="cta"><button type="button" class="btn dk" data-a="drop" data-id="${l.id}">${I('locker')}Dolaba bıraktım</button></div>`;
+    <div class="how" style="text-align:left;margin-top:16px"><div>Dolabın ekranına bırakma kodunu gir.</div><div>${l.s} bölmesi açılınca eşyanı koy ve fotoğrafını çek.</div><div>Kapağı kapat; ilanın aynı anda yayına girer.</div></div>
+    <p class="txt" style="font-size:13px;color:var(--mu);margin-top:16px">Kodu istediğin zaman <b style="color:var(--dk)">Kiralarım → Kiraya verdiklerim</b>’de bulabilirsin.</p></div></div>
+    <div class="cta"><button type="button" class="btn gh" style="flex:none;padding:0 14px" data-a="dropclose">Daha sonra</button><button type="button" class="btn dk" data-a="drop" data-id="${l.id}">${I('locker')}Dolaba bıraktım</button></div>`;
 };
 SCR.survey = () => {
   const v = S.vote;
@@ -1226,6 +1227,7 @@ const ACT = {
     S.listings.unshift({id,n:wiz.n.trim(),c:wiz.c,ic:CATICON[wiz.c],d:wiz.p,h:wiz.hour?Math.round(wiz.p/4/5)*5:0,dep:Math.max(200,Math.round(wiz.p*5/100)*100),buy:wiz.p*20,l:wiz.l,s,av:true,live:false,desc:wiz.d.trim()||'Açıklama eklenmedi.',rules:['Temiz ve eksiksiz iade edilir'],rv:[],code:code4(),photo:wiz.photos[0]||null,o:S.as});
     loading('İlanın hazırlanıyor…',900,()=>{ui.side='lend';stack=[{s:'rentals'},{s:'dropoff',id}];render('fwd');});},
   dropoff:d=>go('dropoff',{id:d.id}),
+  dropclose:()=>{ui.side='lend';stack=[{s:'rentals'}];render('back');toast('İlanın kaydedildi. Kodu Kiraya verdiklerim’de bulabilirsin.','check');},
   drop:d=>{const l=S.listings.find(x=>x.id===d.id);l.live=true;S.notifs.unshift({id:'n'+Date.now(),ic:'check',bg:'#DDF1E5',t:'İlanın yayında!',p:`${l.n} · ${locker(l.l).name} ${l.s}`,w:'Az önce'});loading('Bölme kilitleniyor…',800,()=>{stack=[{s:'home'},{s:'item',id:l.id}];render('fwd');toast('İlanın yayında! Komşuların artık görebilir.','check');confetti();});},
   survey:()=>{closeSheet();go('survey');}, vote:d=>{S.vote=d.v;render('same');},
   vitem:d=>{const i=S.voteItems.indexOf(d.v);i<0?S.voteItems.push(d.v):S.voteItems.splice(i,1);render('same');},
