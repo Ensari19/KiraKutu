@@ -1,5 +1,5 @@
 // KiraKutu service worker: uygulamayı çevrimdışı da açılır yapar.
-const CACHE = 'kirakutu-v2';
+const CACHE = 'kirakutu-v3';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {

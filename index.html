@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>KiraKutu Prototipi</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#12332F">
+<meta name="theme-color" content="#F7F3EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1C1A" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="KiraKutu">
@@ -231,6 +232,7 @@ ul.rules li .i{color:var(--gr)}
 .status.late{background:var(--rd2);color:var(--rd)}
 .big.late{color:var(--rd)}
 .latebox{background:var(--rd2)!important;border-color:#F2B8B1!important}
+.warnbox{background:#FFF4D6;border-color:#F2C94C}
 .latebox .i{color:var(--rd)}
 .late-t{color:var(--rd);font-weight:600}
 .prog.late i{background:var(--rd)!important}
@@ -410,6 +412,34 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 /* Uygulama olarak açıldığında (ana ekrandan / masaüstünden): sunum rehberi gizlenir */
 @media (display-mode:standalone),(display-mode:fullscreen){.stage{grid-template-columns:auto;gap:0}.guide{display:none}}
 @media (display-mode:standalone) and (max-width:600px),(display-mode:fullscreen) and (max-width:600px){body{background:var(--cr)}}
+
+/* ---------- Koyu mod: telefonun temasına göre ---------- */
+@media (prefers-color-scheme:dark){
+  .app{color-scheme:dark;--dk:#E6EFEC;--cr:#0E1C1A;--pp:#152825;--mt:#1D3834;--mt2:#2A4A45;--ln:#28403C;--bd:#C3D2CE;--mu:#93A8A3;--or2:#3B2A1B;--ort:#F5B57A;--gr:#5CC48A;--gr2:#173A28;--rd:#FF8F84;--rd2:#3A1F1C;color:var(--dk);background:var(--cr)}
+  @media (max-width:600px){body{background:#0E1C1A}}
+  /* turuncu üstündeki yazı her zaman koyu */
+  .app .btn,.app .pin.near .bub,.app .pin.near .bub b,.app .badge.new,.app .tabs .plus,.app .tabs .cnt,.app .lkr .top,.app .cell.c-hl,.app .prof .av,.app .opt .wl,.app .compose .send{color:#12332F}
+  .app .btn.dk{color:var(--cr)}
+  .app .btn.gh{color:var(--dk)}
+  /* koyu paneller koyu kalsın */
+  .app .active,.app .earn,.app .toast,.app .onb,.app [style*="background:var(--dk)"]{background:#1C4540!important;color:#F7F3EA!important}
+  .app .prof{background:#173A36;color:#F7F3EA}
+  .app .lkr,.app .lk .ico{background:#1C4540}
+  .app .cell .door::after{background:#12332F}
+  .app .days button.on{color:var(--cr)}
+  /* açık renkli zeminlerde (eşya kartları, avatarlar) yazı koyu */
+  .app [style*="background:#"]{color:#12332F!important}
+  .app [style*="background:#"] b,.app [style*="background:#"] small{color:inherit!important}
+  .app .warnbox{background:#3A3216;border-color:#6B5A1E}
+  .app .latebox{border-color:#5A2E29!important}
+  /* harita ve yarı saydam zeminler */
+  .app .map svg,.app .mapfull svg{filter:brightness(.42) saturate(.75)}
+  .app .maplab,.app .mapx{background:rgba(21,40,37,.95)}
+  .app .load{background:rgba(14,28,26,.92)}
+  .app .ov{background:rgba(0,0,0,.55)}
+  .app .sbar svg *{fill:#E6EFEC}
+  .app .sbar svg [fill="none"]{fill:none;stroke:#E6EFEC}
+}
 </style>
 </head>
 <body>
@@ -721,7 +751,7 @@ SCR.item = c => {
       <div class="prices"><div><small>Günlük</small><b>${tl(it.d)}</b></div><div><small>Saatlik</small><b>${it.h?tl(it.h):'–'}</b></div><div><small>Depozito</small><b>${tl(it.dep)}</b></div></div>
       <button type="button" class="box row" data-a="locker" data-id="${L.id}" style="width:100%;text-align:left"><span class="lk" style="padding:0;border:0;width:auto;background:none"><span class="ico">${I('locker','l')}</span></span><span class="grow"><b>${L.name} · bölme ${it.s}</b><small>${L.dist} · yürüyerek ${L.walk} dk · 7/24</small></span>${I('chev')}</button>
       <div class="box row"><span class="av" style="background:${o.bg}">${o.n[0]}</span><div class="grow"><b>${o.n} <span class="tag ${o.t==='Esnaf'?'or':o.t==='Öğrenci'?'gr':''}">${o.t}</span></b><small>${mine?'Bu senin ilanın':`${stars(o.r)} · ${o.c} başarılı kiralama · kimliği doğrulandı`}</small></div>${mine?I('shield'):`<button type="button" class="ib" data-a="chat" data-o="${it.o}" data-id="${it.id}" aria-label="${o.n} ile mesajlaş">${I('chat')}</button>`}</div>
-      ${!mine&&o.r<3.5?`<div class="box row" style="background:#FFF4D6;border-color:#F2C94C;align-items:flex-start">${I('alert')}<div class="grow"><b>Bu kullanıcının puanı ortalamanın altında</b><small style="color:var(--bd)">${o.r<3?'Puanı 3,0’ın altına düştü; 7 gün içinde yükselmezse ilanları yayından kaldırılır.':'Puanı 3,0’ın altına düşerse ilanları yayından kaldırılır.'} Kiralamadan önce yorumları oku.</small></div></div>`:''}
+      ${!mine&&o.r<3.5?`<div class="box row warnbox" style="align-items:flex-start">${I('alert')}<div class="grow"><b>Bu kullanıcının puanı ortalamanın altında</b><small style="color:var(--bd)">${o.r<3?'Puanı 3,0’ın altına düştü; 7 gün içinde yükselmezse ilanları yayından kaldırılır.':'Puanı 3,0’ın altına düşerse ilanları yayından kaldırılır.'} Kiralamadan önce yorumları oku.</small></div></div>`:''}
       <div class="h4">Bu eşya hakkında</div><p class="txt">${esc(it.desc)}</p>
       <div class="h4">Kurallar</div><ul class="rules">${it.rules.map(r=>`<li>${I('check','s')}${esc(r)}</li>`).join('')}</ul>
       <div class="box" style="background:var(--mt);border-color:var(--mt2)"><div class="row">${I('shield')}<div class="grow"><b>Depozito sadece bloke edilir</b><small>${tl(it.dep)} kartında tutulur, sağlam iadede aynı gün kalkar. İstersen hasar güvencesi de ekleyebilirsin.</small></div></div></div>
